@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "14750993324",
+    "firebase_url": "https://lab2-2a02a.firebaseio.com",
+    "project_id": "lab2-2a02a",
+    "storage_bucket": "lab2-2a02a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14750993324:android:dbe441972102069f",
+        "android_client_info": {
+          "package_name": "com.doura.meetingplanner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "14750993324-4ptt6okk474v7bappnvu3oc4mlau0ur6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.doura.meetingplanner",
+            "certificate_hash": "d97219f8e244536bff07435e64276c19e6fe1210"
+          }
+        },
+        {
+          "client_id": "14750993324-6vq868r4b5t9h4ravf5be3va4v9g2je8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJD2tptCBtRxCmpKao5FZ5L7rdLgBIcyw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "14750993324-6vq868r4b5t9h4ravf5be3va4v9g2je8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

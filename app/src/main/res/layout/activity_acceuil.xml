@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_acceuil"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.doura.meetingplanner.Acceuil">
+
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
+
+        <ImageView
+            android:layout_width="300dp"
+            android:layout_height="200dp"
+            app:srcCompat="@android:drawable/ic_menu_report_image"
+            android:id="@+id/imageView"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+
+        <TextView
+            android:text="Nom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView"
+            android:background="@android:color/holo_green_light"
+            android:textColor="@android:color/background_light"
+            android:paddingLeft="@dimen/paddingtext"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:id="@+id/usaername"
+            android:hint="Veuillez saisir votre nom"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+
+        <TextView
+            android:text="Groupe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView4"
+            android:background="@android:color/holo_green_light"
+            android:textColor="@android:color/background_light"
+            android:paddingLeft="@dimen/paddingtext"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:id="@+id/usergroup"
+            android:hint="Veuillez saisir un groupe"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+
+        <TextView
+            android:text="Photo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView2"
+            android:background="@android:color/holo_green_light"
+            android:textColor="@android:color/background_light"
+            android:paddingLeft="@dimen/paddingtext"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:srcCompat="@android:drawable/ic_menu_camera"
+            android:id="@+id/userphoto" />
+
+        <Button
+            android:text="Valider"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_valider"
+            android:elevation="0dp"
+            android:textSize="18sp"
+            android:textColor="@android:color/holo_green_dark"
+            android:background="@drawable/button_shape"
+            android:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+</RelativeLayout>

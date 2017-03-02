@@ -1,0 +1,21 @@
+<resources>
+    <!--
+    TODO: Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=D9:72:19:F8:E2:44:53:6B:FF:07:43:5E:64:27:6C:19:E6:FE:12:10%3Bcom.doura.meetingplanner
+
+    You can also add your credentials to an existing key, using this line:
+    D9:72:19:F8:E2:44:53:6B:FF:07:43:5E:64:27:6C:19:E6:FE:12:10;com.doura.meetingplanner
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    -->
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">
+         AIzaSyCllltaXq6o_44lrYxss9W-cK2SAxssTYA
+    </string>
+</resources>
