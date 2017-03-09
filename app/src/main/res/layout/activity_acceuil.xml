@@ -12,7 +12,9 @@
     tools:context="com.doura.meetingplanner.Acceuil">
 
 
-
+<ScrollView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
@@ -96,5 +98,6 @@
             android:background="@drawable/button_shape"
             android:layout_gravity="center_horizontal" />
 
-    </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 </RelativeLayout>
