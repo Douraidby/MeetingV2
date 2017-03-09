@@ -1,26 +1,27 @@
 package com.doura.meetingplanner;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.provider.MediaStore;
-import android.provider.MediaStore.Images;
+import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,23 +46,29 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    private static final int PICK_FROM_GALLERY = 1 ;
+    private static final int PICK_IMAGE_REQUEST = 1 ;
     private GoogleMap mMap;
-    private Marker mMarker;
-    private Marker oMarker;
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     LocationRequest mLocationRequest;
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     private StorageReference mStorage;
     private ProgressDialog mProgressdialog;
+    public View dView;
+    private HashMap<Marker,MarkerHolder> markerHolderMap;
+    Uri imageUri;
+    //Define a request code to send to Google Play services This code is returned in Activity.onActivityResult
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,8 +86,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             mapFragment.getMapAsync(this);
         }
-
     }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        getMenuInflater().inflate(R.menu.main_menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
 
 
     public boolean checkPermissions() {
@@ -103,122 +118,172 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.getUiSettings().setZoomControlsEnabled(true);
 
             if (mMap != null) {
+                markerHolderMap = new HashMap<>();
                 mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                     @Override
                     public void onMapLongClick(LatLng latLng) {
-                        AddMarker(latLng);
+                        EditAlertDialog(latLng);
                     }
                 });
             }
         }
-    }
-
-    public void AddMarker(LatLng latLng){
-
-        if(mMarker!=null)
-            mMarker.remove();
-
-
-        EditMarker();
-
-        MarkerOptions options = new MarkerOptions()
-                .title("Cliquer pour éditer")
-                .position(new LatLng(latLng.latitude, latLng.longitude));
-
-        mMarker = mMap.addMarker(options);
-        mMarker.showInfoWindow();
-
     }
 
 
     /**
      * Méthode pour ajouter nom et photo a la position du marqueur
      */
-    public void EditMarker(){
+    public void EditAlertDialog(LatLng latLng){
+
+            final LatLng ll = latLng;
+
+            dView = getLayoutInflater().inflate(R.layout.windowlayout,null);
+            final EditText dName  = (EditText) dView.findViewById(R.id.dName);
+            final ImageView dImage = (ImageView)dView.findViewById(R.id.dImage);
+            final Button dAnnuler = (Button)dView.findViewById(R.id.dAnnuler);
+            final Button dValider = (Button) dView.findViewById(R.id.dValider);
+
+            final AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
+            mBuilder.setView(dView);
+            final AlertDialog dialog = mBuilder.create();
+            dialog.show();
+
+            dImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent();
+                    intent.setType("image/*");
+                    intent.setAction(Intent.ACTION_PICK);
+                    startActivityForResult(intent, PICK_IMAGE_REQUEST);
+                }
+            });
+            dAnnuler.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) { dialog.dismiss(); }
+            });
+
+            dValider.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String MarkerName =  dName.getText().toString();
+                    AddMarker(MarkerName,ll);
+                    dialog.dismiss();
+                }
+            });
 
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                final AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
-                final View mView = getLayoutInflater().inflate(R.layout.infowindow,null);
-                final View dView = getLayoutInflater().inflate(R.layout.windowlayout,null);
-
-                final TextView mName  = (TextView) mView.findViewById(R.id.mName);
-                final TextView mLat  = (TextView) mView.findViewById(R.id.mLat);
-                final TextView mLong  = (TextView) mView.findViewById(R.id.mLong);
-
-                Button dAnnuler = (Button)dView.findViewById(R.id.dAnnuler);
-                Button dValider = (Button) dView.findViewById(R.id.dValider);
-                final EditText dName  = (EditText) dView.findViewById(R.id.dName);
-                ImageView dImage = (ImageView)dView.findViewById(R.id.dImage);
-
-                mBuilder.setView(dView);
-                final AlertDialog dialog = mBuilder.create();
-                dialog.show();
-
-                dImage.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent();
-                        intent.setType("image/*");
-                        intent.setAction(Intent.ACTION_GET_CONTENT);
-                        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_FROM_GALLERY);
-                    }
-
-                });
-
-                dAnnuler.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) { dialog.dismiss(); }
-                });
-
-                dValider.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Toast.makeText(MapsActivity.this, "Bouton valider on click!", Toast.LENGTH_LONG).show();
-                        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-                            @Override
-                            public View getInfoWindow(Marker marker) {
-                                return null;
-                            }
-
-                            @Override
-                            public View getInfoContents(Marker marker) {
-                                Toast.makeText(MapsActivity.this, "getInfoContents!", Toast.LENGTH_LONG).show();
-                                LatLng ll = marker.getPosition();
-                                mName.setText(dName.getText().toString());
-                                mLat.setText("Latitude:" + ll.latitude);
-                                mLong.setText("Longitude" + ll.longitude);
-                                return mView;
-                            }
-                        });
-                        dialog.dismiss();
-                    }
-                });
-
+                EditAlertDialog(ll);
             }
         });
-
+/*        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                EditAlertDialog(ll);
+            }
+        });*/
+ //               marker.showInfoWindow();
     }
+
+    public void AddMarker(String name,LatLng latLng){
+
+        MarkerOptions options = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude));
+        Marker mMarker;
+
+        mMarker = mMap.addMarker(options);
+        MarkerHolder mHolder = new MarkerHolder(name,latLng.latitude,latLng.longitude,imageUri);
+
+        Iterator<HashMap.Entry<Marker, MarkerHolder>> iterator = markerHolderMap.entrySet().iterator();
+        while(iterator.hasNext()){
+            HashMap.Entry<Marker, MarkerHolder> entry = iterator.next();
+            if (entry.getValue().getmLat() == latLng.latitude && entry.getValue().getmLong() == latLng.longitude) {
+                iterator.remove();
+                entry.getKey().remove();
+            }
+        }
+
+        markerHolderMap.put(mMarker,mHolder);
+        ShowInfoWindow(mMarker);
+        for (HashMap.Entry<Marker,MarkerHolder> entry: markerHolderMap.entrySet() ) {
+            Log.d("Id/MarkerHolder/LatLng",entry.getKey() + "/" + entry.getValue() + latLng);
+
+        }
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                ShowInfoWindow(marker);
+                return false;
+            }
+        });
+        mMarker.showInfoWindow();
+    }
+
+
+    public void ShowInfoWindow(final Marker mM){
+
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                MarkerHolder myHolder = markerHolderMap.get(mM);
+                View mView = getLayoutInflater().inflate(R.layout.infowindow,null);
+                TextView mName = (TextView) mView.findViewById(R.id.mName);
+                TextView mLat = (TextView)mView.findViewById(R.id.mLat);
+                TextView mLong = (TextView) mView.findViewById(R.id.mLong);
+                ImageView mImage = (ImageView) mView.findViewById(R.id.mIcon);
+
+                mName.setText(myHolder.getmName());
+                mLat.setText(String.valueOf(myHolder.getmLat()));
+                mLong.setText(String.valueOf(myHolder.getmLong()));
+                try {
+                    mImage.setImageBitmap(getBitmapFromUri(myHolder.getmUri()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return mView;
+            }
+        });
+    }
+
+
+ /** Methode pour creer un bitmap a partir d'un Uri **/
+    private Bitmap getBitmapFromUri(Uri uri) throws IOException {
+        if (uri != null) {
+            ParcelFileDescriptor parcelFileDescriptor =
+                    getContentResolver().openFileDescriptor(uri, "r");
+            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+            Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+            parcelFileDescriptor.close();
+            return image;
+        }
+        return null;
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        ImageView dImage = (ImageView) dView.findViewById(R.id.dImage);
+    //    ImageView mImage  = (ImageView) mView.findViewById(R.id.mIcon);
+
         super.onActivityResult(requestCode, resultCode, data);
 
-        final View mView = getLayoutInflater().inflate(R.layout.infowindow,null);
-        final ImageView mImage = (ImageView) mView.findViewById(R.id.mIcon);
-        View dView = getLayoutInflater().inflate(R.layout.windowlayout,null);
-        ImageView dImage = (ImageView) dView.findViewById(R.id.dImage);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && null != data) {
+            imageUri = data.getData();
 
-        if (requestCode== PICK_FROM_GALLERY && resultCode== Activity.RESULT_OK ) {
-            Bitmap mbitmap = (Bitmap) data.getExtras().get("data");
-            mImage.setImageBitmap(mbitmap);
-
-            Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-            dImage.setImageBitmap(bitmap);
+            try {
+                Bitmap bitmap = getBitmapFromUri(imageUri);
+                dImage.setImageBitmap(bitmap);
+    //            mImage.setImageBitmap(bitmap);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        else
-            Toast.makeText(MapsActivity.this, "data.getExtras(): " + data, Toast.LENGTH_LONG).show();
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -230,7 +295,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .build();
         mGoogleApiClient.connect();
     }
-
 
     public void getlocation() {
 
@@ -252,7 +316,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-
+    @Override
     public void onLocationChanged(Location location) {
 
         mLastLocation = location;
@@ -274,20 +338,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-
-
-
     @Override
     public void onConnectionSuspended(int i) {
-
+        if (i == CAUSE_SERVICE_DISCONNECTED) {
+            Toast.makeText(this, "Disconnected. Please re-connect.", Toast.LENGTH_SHORT).show();
+        } else if (i == CAUSE_NETWORK_LOST) {
+            Toast.makeText(this, "Network lost. Please re-connect.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+		/*
+		 * Google Play services can resolve some errors it detects. If the error
+		 * has a resolution, try sending an Intent to start a Google Play
+		 * services activity that can resolve error.
+		 */
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+				/*
+				 * Thrown if Google Play services canceled the original
+				 * PendingIntent
+				 */
+            } catch (IntentSender.SendIntentException e) {
+                // Log the error
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry. Location services not available to you", Toast.LENGTH_LONG).show();
+        }
     }
 
+    @Override
+    protected void onStop() {
 
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.disconnect();
+        }
+        super.onStop();
+    }
 }
 
 

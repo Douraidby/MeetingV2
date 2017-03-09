@@ -5,10 +5,10 @@
     android:layout_height="match_parent">
 
     <ImageView
+        android:id="@+id/mIcon"
         android:layout_width="100dp"
-        android:layout_height="100dp"
-        app:srcCompat="@drawable/cast_abc_scrubber_control_off_mtrl_alpha"
-        android:id="@+id/mIcon" />
+        android:layout_height="150dp"
+        app:srcCompat="@drawable/button_shape" />
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

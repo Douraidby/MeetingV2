@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -92,6 +93,7 @@ public class Acceuil extends AppCompatActivity {
 
     }
 
+
     private void startPostingProfile() {
         mProgress.setMessage("Uploading to Firebase...");
         mProgress.show();
@@ -116,6 +118,7 @@ public class Acceuil extends AppCompatActivity {
                     } else {
                         Toast.makeText(Acceuil.this, "Vous etes oragnisateur du groupe:  " + group_val, Toast.LENGTH_SHORT).show();
                         newPost.child("Organisateur").setValue("true");
+                        break;
                     }
                 }
             }
