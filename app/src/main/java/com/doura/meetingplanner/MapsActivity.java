@@ -1,13 +1,12 @@
 package com.doura.meetingplanner;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
@@ -16,16 +15,18 @@ import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
@@ -33,6 +34,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -41,41 +43,72 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.FirebaseApp;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    private static final int PICK_IMAGE_REQUEST = 1 ;
-    private GoogleMap mMap;
-    GoogleApiClient mGoogleApiClient;
-    Location mLastLocation;
-    LocationRequest mLocationRequest;
-    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-    private StorageReference mStorage;
-    private ProgressDialog mProgressdialog;
-    public View dView;
-    private HashMap<Marker,MarkerHolder> markerHolderMap;
-    Uri imageUri;
     //Define a request code to send to Google Play services This code is returned in Activity.onActivityResult
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    private static final int PICK_IMAGE_REQUEST = 1 ;
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    private long UPDATE_INTERVAL = 60000;  /* 60 secs */
+    private long FASTEST_INTERVAL =10000; /* 10 secs */
+    private GoogleMap mMap;
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLocation;
+    private LocationRequest mLocationRequest;
+
+    private StorageReference mStorage;
+    private DatabaseReference mDatabase;
+    private FirebaseDatabase mFirebaseInstance;
+    private ProgressDialog mProgressdialog;
+
+    private HashMap<Marker,MarkerHolder> placeHolderMap;
+    private HashMap<Marker,MarkerHolder> markerHolderMap;
+    private HashMap<Marker,User> userHolderMap;
+    private Uri imageUri;
+    public View dView;
+    public String cuName;
+    public String cuGroup;
+    public String cuImage;
+    public Boolean cuOrganizer;
+    public String cuRating;
+    public long usersNB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        buildGoogleApiClient();
+
+        Bundle extras = getIntent().getExtras();
+        cuName = extras.getString("user_name");
+        cuGroup = extras.getString("user_group");
+        cuImage = extras.getString("user_image");
+        cuOrganizer = extras.getBoolean("user_organizer");
         mStorage = FirebaseStorage.getInstance().getReference();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        Log.d("cuOrganizer ",String.valueOf(cuOrganizer));
         mProgressdialog = new ProgressDialog(this);
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
@@ -84,6 +117,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         if (mMap == null) {
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+            // This calls onMapReady(). (Asynchronously)
             mapFragment.getMapAsync(this);
         }
     }
@@ -91,44 +125,223 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         getMenuInflater().inflate(R.menu.main_menu,menu);
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.send_Positions:
+                UploadMeetingPlaces();
+                return true;
+            case R.id.create_event:
 
+                return true;
+            case R.id.quit_app:
+                quitApplication();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void quitApplication() {
+        android.app.AlertDialog.Builder alertDialogBuilder = new android.app.AlertDialog.Builder(this);
+        alertDialogBuilder.setMessage("Voulez vous fermer l'application?");
+        alertDialogBuilder.setPositiveButton("Oui",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        finishAffinity();
+                    }
+                });
+        alertDialogBuilder.setNegativeButton("non", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+        android.app.AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
+
+    /**
+     * Methode pour sauvegarder les marqueurs avec leurs images dans Firebase
+     */
+    private void UploadMeetingPlaces() {
+        if (markerHolderMap.size() != 0) {
+            mProgressdialog.setMessage("Uploading to Firebase...");
+            mProgressdialog.show();
+            for (final HashMap.Entry<Marker, MarkerHolder> entry : markerHolderMap.entrySet()) {
+                String imgUri = entry.getValue().getmUri();
+                StorageReference Filepath = mStorage.child("Markers_Images").child(Uri.parse(imgUri).getLastPathSegment());
+                Filepath.putFile(Uri.parse(imgUri)).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        String ImgUrl = taskSnapshot.getDownloadUrl().toString();
+                        DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
+                        String id = dbref.push().getKey();
+                        entry.getValue().setmImgUrl(ImgUrl);
+                        entry.getValue().setmId(id);
+                        dbref.child(id).setValue(entry.getValue());
+                        dbref.child(entry.getValue().getmId()).child("mVotes").child(cuName+"@"+cuGroup).setValue(cuRating);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MapsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+            });
+            }
+            mProgressdialog.dismiss();
+        }
+        else
+        Toast.makeText(this, "Ajouter au moins un marqueur en appyuant longtemps sur la carte!", Toast.LENGTH_SHORT).show();
+    }
 
     public boolean checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
             return false;
         } else
             return true;
     }
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
         //mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            buildGoogleApiClient();
-            mMap.setMyLocationEnabled(true);
-            mMap.getUiSettings().setZoomControlsEnabled(true);
-
             if (mMap != null) {
+                Log.d("onMapReady","Map not null");
+                mMap.setMyLocationEnabled(true);
+                mMap.getUiSettings().setZoomControlsEnabled(true);
                 markerHolderMap = new HashMap<>();
-                mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                userHolderMap = new HashMap<>();
+                placeHolderMap = new HashMap<>();
+
+                    mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                        @Override
+                        public void onMapLongClick(LatLng latLng) {
+                            if (cuOrganizer)
+                                EditAlertDialog(latLng);
+                            else
+                                   Toast.makeText(MapsActivity.this, "Seul l'organizateur peut ajouter un lieu", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
-                    public void onMapLongClick(LatLng latLng) {
-                        EditAlertDialog(latLng);
+                    public boolean onMarkerClick(Marker marker) {
+                        ShowInfoWindow(marker);
+                        return false;
+                    }
+                });
+
+//                checkUsersNumber();
+
+                mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                    @Override
+                    public void onInfoWindowClick(Marker marker) {
+/*                if (marker.getTag()=="place")
+                    EditAlertDialog(ll);*/
+                        if (!cuOrganizer && marker.getTag()=="placeOnServer"){
+                            VoteDialog(marker);
+                        }
                     }
                 });
             }
         }
     }
 
+    private void checkUsersNumber(){
+
+        DatabaseReference  MarkersRef = mDatabase.child(cuGroup).child("Users_Markers");
+        MarkersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists())
+                    usersNB = dataSnapshot.getChildrenCount();
+                else
+                    usersNB = 0;
+                Log.d("checkUsersNumber",String.valueOf(usersNB));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void CheckIfOrganizer(){
+        final DatabaseReference  db = mDatabase.child(cuGroup).child("Users_Markers").child(cuName+"@"+cuGroup);
+        db.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+                if (dataSnapshot.exists()) {
+ //                   db.child("organizer").setValue(true);
+                    cuOrganizer = true;
+                    Log.d("true",String.valueOf(dataSnapshot.getValue()));
+                }
+                else {
+
+                    Log.d("false", String.valueOf(dataSnapshot.getValue()));
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    private void getMeetingPlaces() {
+
+        DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
+        dbref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChildren()){
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        MarkerHolder mHolder = data.getValue(MarkerHolder.class);
+
+                        MarkerOptions options = new MarkerOptions().position(new LatLng(mHolder.getmLat(), mHolder.getmLong()))
+                                                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                        Marker mMarker = mMap.addMarker(options);
+                        mMarker.setTag("placeOnServer");
+                        placeHolderMap.put(mMarker,mHolder);
+//                        mMarker.showInfoWindow();
+                    }
+                     Log.d("getmeet Children Count ", String.valueOf(dataSnapshot.getChildrenCount()));
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
 
     /**
      * Méthode pour ajouter nom et photo a la position du marqueur
@@ -139,9 +352,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             dView = getLayoutInflater().inflate(R.layout.windowlayout,null);
             final EditText dName  = (EditText) dView.findViewById(R.id.dName);
-            final ImageView dImage = (ImageView)dView.findViewById(R.id.dImage);
-            final Button dAnnuler = (Button)dView.findViewById(R.id.dAnnuler);
-            final Button dValider = (Button) dView.findViewById(R.id.dValider);
+            ImageView dImage = (ImageView)dView.findViewById(R.id.dImage);
+            Button dAnnuler = (Button)dView.findViewById(R.id.dAnnuler);
+            Button dValider = (Button) dView.findViewById(R.id.dValider);
+            RatingBar dRating = (RatingBar) dView.findViewById(R.id.dRatingBar);
 
             final AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
             mBuilder.setView(dView);
@@ -157,6 +371,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     startActivityForResult(intent, PICK_IMAGE_REQUEST);
                 }
             });
+
+            dRating.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+                @Override
+                public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+                    cuRating = String.valueOf(rating);
+                }
+            });
+
             dAnnuler.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) { dialog.dismiss(); }
@@ -165,60 +387,73 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             dValider.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String MarkerName =  dName.getText().toString();
-                    AddMarker(MarkerName,ll);
-                    dialog.dismiss();
+                    if ((imageUri !=null && cuRating!=null)){
+                        String placeName =  dName.getText().toString();
+                        AddMarker(placeName,ll);
+                        dialog.dismiss();}
+                    else
+                        Toast.makeText(MapsActivity.this, "Vous devez choisir nom, image et note!", Toast.LENGTH_SHORT).show();
                 }
             });
+    }
 
-        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+    private void VoteDialog(final Marker marker) {
+        final DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
+        View voteView = getLayoutInflater().inflate(R.layout.votewindow,null);
+        final Button vBtn = (Button) voteView.findViewById(R.id.voteBtn);
+        final RatingBar vBar = (RatingBar) voteView.findViewById(R.id.userratingBar);
+
+         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
+        mBuilder.setView(voteView);
+        final AlertDialog dialog = mBuilder.create();
+        dialog.show();
+
+        vBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
-            public void onInfoWindowClick(Marker marker) {
-                EditAlertDialog(ll);
+            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+                cuRating = String.valueOf(rating);
             }
         });
-/*        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+
+        vBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onInfoWindowClick(Marker marker) {
-                EditAlertDialog(ll);
+            public void onClick(View v) {
+                for (HashMap.Entry<Marker, MarkerHolder> entry : placeHolderMap.entrySet()) {
+                    if (entry.getKey().equals(marker)){
+                        dbref.child(entry.getValue().getmId()).child("mVotes").child(cuName+"@"+cuGroup).setValue(cuRating);
+                        dialog.dismiss();
+                    }
+                }
             }
-        });*/
- //               marker.showInfoWindow();
+        });
     }
+
 
     public void AddMarker(String name,LatLng latLng){
 
-        MarkerOptions options = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude));
-        Marker mMarker;
+            MarkerOptions options = new MarkerOptions().position(new LatLng(latLng.latitude, latLng.longitude))
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            Marker mMarker;
+            mMarker = mMap.addMarker(options);
+            mMarker.setTag("place");
+            MarkerHolder mHolder = new MarkerHolder(name, cuGroup, latLng.latitude, latLng.longitude, imageUri.toString());
 
-        mMarker = mMap.addMarker(options);
-        MarkerHolder mHolder = new MarkerHolder(name,latLng.latitude,latLng.longitude,imageUri);
-
-        Iterator<HashMap.Entry<Marker, MarkerHolder>> iterator = markerHolderMap.entrySet().iterator();
-        while(iterator.hasNext()){
-            HashMap.Entry<Marker, MarkerHolder> entry = iterator.next();
-            if (entry.getValue().getmLat() == latLng.latitude && entry.getValue().getmLong() == latLng.longitude) {
-                iterator.remove();
-                entry.getKey().remove();
+            Iterator<HashMap.Entry<Marker, MarkerHolder>> iterator = markerHolderMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                HashMap.Entry<Marker, MarkerHolder> entry = iterator.next();
+                if (entry.getValue().getmLat() == latLng.latitude && entry.getValue().getmLong() == latLng.longitude) {
+                    iterator.remove();
+                    entry.getKey().remove();
+                }
             }
-        }
 
-        markerHolderMap.put(mMarker,mHolder);
-        ShowInfoWindow(mMarker);
-        for (HashMap.Entry<Marker,MarkerHolder> entry: markerHolderMap.entrySet() ) {
+            markerHolderMap.put(mMarker, mHolder);
+            mMarker.showInfoWindow();
+
+/*        for (HashMap.Entry<Marker,MarkerHolder> entry: markerHolderMap.entrySet() ) {
             Log.d("Id/MarkerHolder/LatLng",entry.getKey() + "/" + entry.getValue() + latLng);
-
-        }
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                ShowInfoWindow(marker);
-                return false;
-            }
-        });
-        mMarker.showInfoWindow();
+        }*/
     }
-
 
     public void ShowInfoWindow(final Marker mM){
 
@@ -230,32 +465,61 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public View getInfoContents(Marker marker) {
-                MarkerHolder myHolder = markerHolderMap.get(mM);
-                View mView = getLayoutInflater().inflate(R.layout.infowindow,null);
+                View mView = getLayoutInflater().inflate(R.layout.infowindow, null);
                 TextView mName = (TextView) mView.findViewById(R.id.mName);
-                TextView mLat = (TextView)mView.findViewById(R.id.mLat);
+                TextView mLat = (TextView) mView.findViewById(R.id.mLat);
                 TextView mLong = (TextView) mView.findViewById(R.id.mLong);
                 ImageView mImage = (ImageView) mView.findViewById(R.id.mIcon);
+                RatingBar mRating = (RatingBar) mView.findViewById(R.id.mRating);
 
-                mName.setText(myHolder.getmName());
-                mLat.setText(String.valueOf(myHolder.getmLat()));
-                mLong.setText(String.valueOf(myHolder.getmLong()));
-                try {
-                    mImage.setImageBitmap(getBitmapFromUri(myHolder.getmUri()));
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (marker.getTag()=="user") {
+                    User myHolder = userHolderMap.get(marker);
+                    mName.setText(myHolder.getName());
+                    mLat.setText("Lat:" + String.valueOf(myHolder.getuLat()));
+                    mLong.setText("Long:" + String.valueOf(myHolder.getuLong()));
+                    mRating.setVisibility(View.INVISIBLE);
+
+                    byte[] decodedString = Base64.decode(myHolder.getmImgUrl(), Base64.DEFAULT);
+                    Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    mImage.setImageBitmap(decodedByte);
+
+                    return mView;
                 }
-                return mView;
+                if (marker.getTag()=="place") {
+                    MarkerHolder myHolder = markerHolderMap.get(marker);
+                    mName.setText(myHolder.getmName());
+                    mLat.setText(String.valueOf(myHolder.getmLat()));
+                    mLong.setText(String.valueOf(myHolder.getmLong()));
+                    try {
+                        mImage.setImageBitmap(getBitmapFromUri(Uri.parse(myHolder.getmUri())));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    mRating.setRating(Float.parseFloat(cuRating));
+                    return mView;
+                }
+
+                if (marker.getTag()=="placeOnServer") {
+                    MarkerHolder pHolder = placeHolderMap.get(marker);
+                    mName.setText(pHolder.getmName());
+                    mLat.setText(String.valueOf(pHolder.getmLat()));
+                    mLong.setText(String.valueOf(pHolder.getmLong()));
+                    Picasso.with(MapsActivity.this)
+                            .load(pHolder.getmImgUrl())
+                            .into(mImage);
+
+                    return mView;
+                }
+                else
+                    return null;
             }
         });
     }
 
-
  /** Methode pour creer un bitmap a partir d'un Uri **/
     private Bitmap getBitmapFromUri(Uri uri) throws IOException {
         if (uri != null) {
-            ParcelFileDescriptor parcelFileDescriptor =
-                    getContentResolver().openFileDescriptor(uri, "r");
+            ParcelFileDescriptor parcelFileDescriptor = getContentResolver().openFileDescriptor(uri, "r");
             FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
             Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
             parcelFileDescriptor.close();
@@ -264,12 +528,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return null;
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         ImageView dImage = (ImageView) dView.findViewById(R.id.dImage);
-    //    ImageView mImage  = (ImageView) mView.findViewById(R.id.mIcon);
-
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && null != data) {
@@ -283,63 +544,187 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 e.printStackTrace();
             }
         }
-
     }
 
     protected synchronized void buildGoogleApiClient() {
-
+        Log.d("Ici ","buildGoogleApiClient");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-        mGoogleApiClient.connect();
     }
 
-    public void getlocation() {
-
- /*      if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (LocationListener) this);
-            Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        }*/
-    }
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        Log.d("onConnected ","avant CheckIfOrganizer");
+//        CheckIfOrganizer();
+
+        if (mLocation!=null) {
+
+            LatLng latLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 11);
+            mMap.animateCamera(cameraUpdate);
+            UploadProfileTwo(mLocation);
+            getUsers();
+            getMeetingPlaces();
+        }
+        else
+            Log.d("onConnected mLocation ="," Null");
 
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000);
-        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setInterval(UPDATE_INTERVAL);
+        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        requestLocationUpdates();
+    }
 
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    private void UpdateProfile(Location loc) {
+        Log.d("UpdateProfile "," .");
+        DatabaseReference dbref = mDatabase.child(cuGroup).child("Users_Markers");
+        String UserId = cuName+"@"+cuGroup;
+        dbref.child(UserId).child("uLat").setValue(loc.getLatitude());
+        dbref.child(UserId).child("uLong").setValue(loc.getLongitude());
+        Toast.makeText(this, "Latitude and Longitude updated..", Toast.LENGTH_SHORT).show();
+    }
+
+    private void getUsers(){
+        DatabaseReference dbref = mDatabase.child(cuGroup).child("Users_Markers");
+        Log.d("getUsers()", "yes");
+        dbref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                float userIcon;
+                String Tag;
+                if (!userHolderMap.isEmpty()) {
+                    for (HashMap.Entry<Marker,User> entry: userHolderMap.entrySet() ) {
+                        entry.getKey().remove();}
+                    userHolderMap.clear();}
+
+                for (DataSnapshot data: dataSnapshot.getChildren()){
+                    User user = data.getValue(User.class);
+                    if (user.getName().equals(cuName))
+                        userIcon = BitmapDescriptorFactory.HUE_BLUE;
+                    else
+                        userIcon = BitmapDescriptorFactory.HUE_RED;
+
+                    MarkerOptions options = new MarkerOptions().position(new LatLng(user.getuLat(), user.getuLong()))
+                                                               .icon(BitmapDescriptorFactory.defaultMarker(userIcon));
+
+                    Marker mMarker = mMap.addMarker(options);
+                    mMarker.setTag("user");
+                    userHolderMap.put(mMarker,user);
+//                    mMarker.showInfoWindow();
+                    Log.d("getUsers name: " + user.getName(),"Marker: " + mMarker);
+                }
+                Log.d("getUser Children Count ", String.valueOf(dataSnapshot.getChildrenCount()));
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
+
+    private void requestLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest,this);
+        Log.d("requestLocationUpdates"," .");
     }
 
     @Override
     public void onLocationChanged(Location location) {
+        Log.d("onLocationChanged"," .");
+//        UpdateProfile(location);
 
-        mLastLocation = location;
-        //placer le marqueur de la position courante
-        LatLng latLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-        MarkerOptions markeroptions = new MarkerOptions();
-        markeroptions.position(latLng);
-        markeroptions.title("Position actuelle!");
-        markeroptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+        if (mLocation == null){
+            UploadProfileTwo(location);
 
-        mMap.addMarker(markeroptions);
-        //Bouger la camera de la carte
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
-
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 11);
+            mMap.animateCamera(cameraUpdate);
+            getUsers();
+            getMeetingPlaces();
+            mLocation = location;}
+        else
+            UpdateProfile(location);
     }
 
+    /**
+     * Méthode pour sauvegarder le profle de l'utilisateur courant dans Firebase
+     */
+    private void UploadProfileTwo(Location location) {
+
+//        mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (location!=null) {
+            User UserMarker = new User(cuName, cuGroup, cuOrganizer, location.getLatitude(), location.getLongitude(), cuImage);
+            DatabaseReference dbref = mDatabase.child(cuGroup).child("Users_Markers");
+            String UserId = cuName + "@" + cuGroup;
+            dbref.child(UserId).setValue(UserMarker);
+            Log.d("mLocation =","Not Null");
+            Log.d("Profile ", "uploaded");
+            Toast.makeText(this, "Profile uploaded to Firebase!", Toast.LENGTH_SHORT).show();
+        }
+        else
+            Log.d("mLocation ="," Null");
+/*        getUsers();
+        getMeetingPlaces();*/
+    }
+    @Override
+    protected void onStart() {
+        Log.d("onStart"," .");
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d("onStop"," .");
+        super.onStop();
+        if (mGoogleApiClient != null)
+            mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d("onResume"," .");
+        super.onResume();
+        if (mGoogleApiClient.isConnected())
+            requestLocationUpdates();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d("onPause"," .");
+        super.onPause();
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
+    }
 
     @Override
     public void onConnectionSuspended(int i) {
+        Log.d("onConnectionSuspended"," .");
         if (i == CAUSE_SERVICE_DISCONNECTED) {
             Toast.makeText(this, "Disconnected. Please re-connect.", Toast.LENGTH_SHORT).show();
         } else if (i == CAUSE_NETWORK_LOST) {
@@ -349,6 +734,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d("onConnectionFailed"," .");
 		/*
 		 * Google Play services can resolve some errors it detects. If the error
 		 * has a resolution, try sending an Intent to start a Google Play
@@ -367,19 +753,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 e.printStackTrace();
             }
         } else {
-            Toast.makeText(getApplicationContext(),
-                    "Sorry. Location services not available to you", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),"Sorry. Location services not available to you", Toast.LENGTH_LONG).show();
         }
     }
 
-    @Override
-    protected void onStop() {
 
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.disconnect();
-        }
-        super.onStop();
-    }
+
 }
 
 

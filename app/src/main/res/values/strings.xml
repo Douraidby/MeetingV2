@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">Meeting Planner</string>
     <string name="title_activity_maps">Map</string>
+    <string name="quitter_le_groupe">Quitter le groupe</string>
+    <string name="upload_meetings">Upload Meetings</string>
+    <string name="envoyer_lieu_de_rencontre">Envoyer lieu de rencontre</string>
+    <string name="ouvrir_calendrier">Ouvrir calendrier</string>
+    <string name="cr_er_venement">Créer évenement</string>
+    <string name="sortir">Sortir</string>
+    <string name="noter">Noter</string>
+    <string name="valider">Valider</string>
 </resources>

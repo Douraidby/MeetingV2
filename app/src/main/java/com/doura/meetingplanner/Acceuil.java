@@ -7,6 +7,8 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -39,6 +41,9 @@ public class Acceuil extends AppCompatActivity {
     private StorageReference mStorage;
     private DatabaseReference mDatabase;
     private ProgressDialog mProgress;
+    public MarkerHolder currentUser;
+    private String uImageEncoded;
+//    Boolean uOrganizer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +52,7 @@ public class Acceuil extends AppCompatActivity {
         setContentView(R.layout.activity_acceuil);
 
         mStorage = FirebaseStorage.getInstance().getReference();
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Profiles");
+        mDatabase = FirebaseDatabase.getInstance().getReference();
         myDB = DatabaseHelper.getInstance(this);
 
         mProgress = new ProgressDialog(this);
@@ -72,25 +77,48 @@ public class Acceuil extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (Validerprofile()) {
+                    final String uName= Name_T.getText().toString();
+                    final String uGroup = Group_T.getText().toString();
 
-                    //Insertion du profile dans SQLite
-                    boolean isInserted = myDB.insertData(Name_T.getText().toString(), Group_T.getText().toString(), img_Blob);
-                    if (isInserted) {
-                        Toast.makeText(Acceuil.this, "Données inserrées dans SQLite!", Toast.LENGTH_LONG).show();
-                        Intent intent = new Intent(Acceuil.this,MapsActivity.class);
-                        startActivity(intent);
-                    }
-                    else
-                        Toast.makeText(Acceuil.this, "Erreur d'insertion dans SQLite!", Toast.LENGTH_LONG).show();
+                    DatabaseReference userRef = mDatabase.child(uGroup).child("Users_Markers");
+                    userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Intent intent = new Intent(Acceuil.this,MapsActivity.class);
+                            Bundle extras = new Bundle();
+                            extras.putString("user_name",uName);
+                            extras.putString("user_group",uGroup);
+                            extras.putString("user_image",uImageEncoded);
+                            boolean uOrganizer;
+
+                            if (!dataSnapshot.hasChildren())
+                                uOrganizer = true;
+                            else {
+                                if (!dataSnapshot.child(uName+"@"+uGroup).exists())
+                                    uOrganizer = false;
+                                else {
+                                    if (dataSnapshot.child(uName+"@"+uGroup).child("organizer").getValue().equals(true))
+                                        uOrganizer = true;
+                                    else
+                                        uOrganizer = false;
+                                }
+                            }
+                            extras.putBoolean("user_organizer",uOrganizer);
+                            intent.putExtras(extras);
+                            startActivity(intent);
+                            Log.d("Acceuil message", String.valueOf(dataSnapshot.getValue()) + "||" + String.valueOf(uOrganizer));
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                        }
+                    });
 
                     //Insertion du profile dans Firebase
-                    startPostingProfile();
-
-
+ //                   startPostingProfile();
                 }
             }
         });
-
     }
 
 
@@ -128,19 +156,6 @@ public class Acceuil extends AppCompatActivity {
 
             }
         });
-
-
-        //Creation dans la base Storage du dossier Images_Profiles et ajout des noms des images
-    //    StorageReference filepath = mStorage.child("Images_Profiles").child(mImageUri.getLastPathSegment());
-/*        StorageReference filepath = mStorage.child("Images_Profiles").child(Name_T.getText().toString());
-        filepath.putFile(mImageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Uri downloadUrl = taskSnapshot.getDownloadUrl();
-
-            }
-        });*/
-
         mProgress.dismiss();
     }
 
@@ -150,15 +165,12 @@ public class Acceuil extends AppCompatActivity {
 
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
 
-            Bundle bundle = data.getExtras();
-            mImageUri = (Uri)bundle.get(Intent.EXTRA_STREAM);
-
-    //        mImageUri = data.getData();
             Bitmap bitmap = (Bitmap) data.getExtras().get("data");
             mImage.setImageBitmap(bitmap);
             ByteArrayOutputStream CompressedImg = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, CompressedImg);
             img_Blob = CompressedImg.toByteArray();
+            uImageEncoded = Base64.encodeToString(CompressedImg.toByteArray(),Base64.DEFAULT);
 
         }
     }
@@ -174,13 +186,13 @@ public class Acceuil extends AppCompatActivity {
 
    //         if (!isNameEmpty() && !isGroupEmpty() && !isImageEmpty()){
                 if (!isNameEmpty() && !isGroupEmpty()){
-                User user = new User(name,group,img_Blob);
+//                currentUser = new User(name,group,img_Blob);
                 return true;
             }
             else
                 return false;
-
     }
+
 
     //Verifier si le nom est saisi
     public boolean isNameEmpty(){

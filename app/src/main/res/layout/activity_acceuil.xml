@@ -88,7 +88,7 @@
             android:id="@+id/userphoto" />
 
         <Button
-            android:text="Valider"
+            android:text="@string/valider"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/btn_valider"
