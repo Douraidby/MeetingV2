@@ -146,7 +146,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 UploadMeetingPlaces();
                 return true;
             case R.id.menu_messages:
-                ShowVotes();
+                if (cuOrganizer)
+                    ShowVotes();
+                else
+                    Toast.makeText(this, "Accés restreint a l'organisateur!", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.quit_app:
                 quitApplication();
