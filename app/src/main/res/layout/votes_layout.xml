@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/vote_complet_veuillez_cr_er_un_venement"
+        android:textStyle="bold"
+        android:textSize="16dp"
+        android:textColor="#CC236521"
+        android:paddingTop="15dp"
+        android:textAlignment="center"
+        android:layout_gravity="center_horizontal"/>
+
+    <LinearLayout android:layout_width="match_parent"
+        android:id="@+id/ll1"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/activity_horizontal_margin">
+
+        <TextView android:layout_weight="1"
+            android:id="@+id/lieu1"
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:textStyle="bold"/>
+
+        <RatingBar
+            android:id="@+id/RatingBar1"
+            style="?android:attr/ratingBarStyleSmall"
+            android:layout_width="124dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:isIndicator="true"
+            android:numStars="5"
+            android:stepSize="0.2" />
+
+
+
+        <Button android:id="@+id/btn1"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:textSize="8dp"
+            android:text="@string/cr_er_l_venement" />
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent"
+    android:id="@+id/ll2"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/activity_horizontal_margin">
+    <TextView android:layout_weight="1"
+        android:id="@+id/lieu2"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/moy2"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content" />
+
+        <Button android:id="@+id/btn2"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/cr_er_l_venement" />
+</LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/activity_horizontal_margin">
+
+        <TextView
+            android:id="@+id/lieu3"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/moy3"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btn3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cr_er_l_venement" />
+    </LinearLayout>
+
+</LinearLayout>
