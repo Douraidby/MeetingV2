@@ -9,4 +9,9 @@
     <string name="sortir">Sortir</string>
     <string name="noter">Noter</string>
     <string name="valider">Valider</string>
+    <string name="moyenne_des_votes_par_lieu">Moyenne des votes par lieu</string>
+    <string name="vote_moyen_par_lieu">Vote moyen par lieu</string>
+    <string name="cr_er_l_venement">Créer l\'évenement</string>
+    <string name="note_moyenne_par_lieu">Note moyenne par lieu</string>
+    <string name="vote_complet_veuillez_cr_er_un_venement">Vote complet! veuillez créer un évenement:</string>
 </resources>

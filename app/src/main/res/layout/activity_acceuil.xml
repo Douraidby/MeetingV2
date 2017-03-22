@@ -95,7 +95,7 @@
             android:elevation="0dp"
             android:textSize="18sp"
             android:textColor="@android:color/holo_green_dark"
-            android:background="@drawable/button_shape"
+            android:background="@drawable/shape_notification"
             android:layout_gravity="center_horizontal" />
 
         </LinearLayout>

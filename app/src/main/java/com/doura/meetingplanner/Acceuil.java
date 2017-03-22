@@ -106,7 +106,7 @@ public class Acceuil extends AppCompatActivity {
                             extras.putBoolean("user_organizer",uOrganizer);
                             intent.putExtras(extras);
                             startActivity(intent);
-                            Log.d("Acceuil message", String.valueOf(dataSnapshot.getValue()) + "||" + String.valueOf(uOrganizer));
+ //                           Log.d("Acceuil message", String.valueOf(dataSnapshot.getValue()) + "||" + String.valueOf(uOrganizer));
                         }
 
                         @Override

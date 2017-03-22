@@ -58,8 +58,10 @@ import com.squareup.picasso.Picasso;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
@@ -84,6 +86,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private HashMap<Marker,MarkerHolder> placeHolderMap;
     private HashMap<Marker,MarkerHolder> markerHolderMap;
     private HashMap<Marker,User> userHolderMap;
+    private List<MarkerHolder> TempHolderList;
     private Uri imageUri;
     public View dView;
     public String cuName;
@@ -92,6 +95,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public Boolean cuOrganizer;
     public String cuRating;
     public long usersNB;
+    public List<String> Votes;
+    public Button notifCount;
+    public int mNotifCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +132,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
+
+/*        View count = menu.findItem(R.id.badge).getActionView();
+        notifCount = (Button) count.findViewById(R.id.notif_count);
+        notifCount.setText(String.valueOf(mNotifCount));*/
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -135,8 +145,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.send_Positions:
                 UploadMeetingPlaces();
                 return true;
-            case R.id.create_event:
-
+            case R.id.menu_messages:
+                ShowVotes();
                 return true;
             case R.id.quit_app:
                 quitApplication();
@@ -170,34 +180,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Methode pour sauvegarder les marqueurs avec leurs images dans Firebase
      */
     private void UploadMeetingPlaces() {
-        if (markerHolderMap.size() != 0) {
-            mProgressdialog.setMessage("Uploading to Firebase...");
-            mProgressdialog.show();
-            for (final HashMap.Entry<Marker, MarkerHolder> entry : markerHolderMap.entrySet()) {
-                String imgUri = entry.getValue().getmUri();
-                StorageReference Filepath = mStorage.child("Markers_Images").child(Uri.parse(imgUri).getLastPathSegment());
-                Filepath.putFile(Uri.parse(imgUri)).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        String ImgUrl = taskSnapshot.getDownloadUrl().toString();
-                        DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
-                        String id = dbref.push().getKey();
-                        entry.getValue().setmImgUrl(ImgUrl);
-                        entry.getValue().setmId(id);
-                        dbref.child(id).setValue(entry.getValue());
-                        dbref.child(entry.getValue().getmId()).child("mVotes").child(cuName+"@"+cuGroup).setValue(cuRating);
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(MapsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-            });
+        DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
+        dbref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    if (markerHolderMap.size() == 3) {
+                        mProgressdialog.setMessage("Uploading to Firebase...");
+                        mProgressdialog.show();
+                        for (final HashMap.Entry<Marker, MarkerHolder> entry : markerHolderMap.entrySet()) {
+                            String imgUri = entry.getValue().getmUri();
+                            StorageReference Filepath = mStorage.child("Markers_Images").child(Uri.parse(imgUri).getLastPathSegment());
+                            Filepath.putFile(Uri.parse(imgUri)).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                    String ImgUrl = taskSnapshot.getDownloadUrl().toString();
+                                    DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
+                                    String id = dbref.push().getKey();
+                                    entry.getValue().setmImgUrl(ImgUrl);
+                                    entry.getValue().setmId(id);
+                                    dbref.child(id).setValue(entry.getValue());
+                                    dbref.child(entry.getValue().getmId()).child("mVotes").child(cuName + "@" + cuGroup).setValue(entry.getValue().getmVote());
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(MapsActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                        mProgressdialog.dismiss();
+                    } else
+                        Toast.makeText(MapsActivity.this, "Il faut ajouter trois lieux en appuyant longtemps sur la carte!", Toast.LENGTH_SHORT).show();
+                }
+                else
+                    Toast.makeText(MapsActivity.this, "Vous avez déja ajouté trois lieux sur la carte!", Toast.LENGTH_SHORT).show();
             }
-            mProgressdialog.dismiss();
-        }
-        else
-        Toast.makeText(this, "Ajouter au moins un marqueur en appyuant longtemps sur la carte!", Toast.LENGTH_SHORT).show();
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
     }
 
     public boolean checkPermissions() {
@@ -221,16 +246,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 markerHolderMap = new HashMap<>();
                 userHolderMap = new HashMap<>();
                 placeHolderMap = new HashMap<>();
+                TempHolderList = new ArrayList<>();
+                Votes = new ArrayList<>();
 
-                    mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-                        @Override
-                        public void onMapLongClick(LatLng latLng) {
-                            if (cuOrganizer)
-                                EditAlertDialog(latLng);
-                            else
-                                   Toast.makeText(MapsActivity.this, "Seul l'organizateur peut ajouter un lieu", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                    @Override
+                    public void onMapLongClick(LatLng latLng) {
+                        if (cuOrganizer)
+                            EditAlertDialog(latLng);
+                        else
+                               Toast.makeText(MapsActivity.this, "Seul l'organisateur peut ajouter un lieu", Toast.LENGTH_SHORT).show();
+                        }
+                    });
 
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
@@ -252,29 +279,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     }
                 });
+
+                if (cuOrganizer)
+                    CountAllVotes();
             }
         }
     }
 
-    private void checkUsersNumber(){
-
-        DatabaseReference  MarkersRef = mDatabase.child(cuGroup).child("Users_Markers");
-        MarkersRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists())
-                    usersNB = dataSnapshot.getChildrenCount();
-                else
-                    usersNB = 0;
-                Log.d("checkUsersNumber",String.valueOf(usersNB));
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
 
     private void CheckIfOrganizer(){
         final DatabaseReference  db = mDatabase.child(cuGroup).child("Users_Markers").child(cuName+"@"+cuGroup);
@@ -418,16 +429,87 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         vBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for (HashMap.Entry<Marker, MarkerHolder> entry : placeHolderMap.entrySet()) {
+                final DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
+
+                for (final HashMap.Entry<Marker, MarkerHolder> entry : placeHolderMap.entrySet()) {
                     if (entry.getKey().equals(marker)){
-                        dbref.child(entry.getValue().getmId()).child("mVotes").child(cuName+"@"+cuGroup).setValue(cuRating);
-                        dialog.dismiss();
+                        dbref.child(entry.getValue().getmId()).child("mVotes").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.child(cuName+"@"+cuGroup).exists()){
+                                    Toast.makeText(MapsActivity.this, "Vous avez déja noté ce lieu!", Toast.LENGTH_SHORT).show();
+                                    dialog.dismiss();}
+                                else {
+                                    dbref.child(entry.getValue().getmId()).child("mVotes").child(cuName + "@" + cuGroup).setValue(cuRating);
+                                    Toast.makeText(MapsActivity.this, "Votre note sera sauvegarder dans Firebase.", Toast.LENGTH_SHORT).show();}
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
                     }
                 }
             }
         });
     }
 
+
+    public void CheckIfAllRated() {
+        DatabaseReference  dbRef = mDatabase.child(cuGroup).child("Users_Markers");
+        dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                long Nbusers = dataSnapshot.getChildrenCount();
+                if (TempHolderList.get(0).getmVotes().size()== Nbusers && TempHolderList.get(1).getmVotes().size()== Nbusers && TempHolderList.get(2).getmVotes().size()== Nbusers)
+                    ShowVotes();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+
+    private void ShowVotes() {
+        View vView = getLayoutInflater().inflate(R.layout.votes_layout,null);
+        TextView vName1  = (TextView) vView.findViewById(R.id.lieu1);
+        TextView vMoy1 = (TextView)vView.findViewById(R.id.moy1);
+        Button vbtn1 = (Button)vView.findViewById(R.id.btn1);
+
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
+        mBuilder.setView(vView);
+        AlertDialog dialog = mBuilder.create();
+        dialog.show();
+    }
+
+    public void CountAllVotes(){
+        DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
+        dbref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    TempHolderList.clear();
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        MarkerHolder tempHolder = data.getValue(MarkerHolder.class);
+                        TempHolderList.add(tempHolder);
+                        Log.d("tempHolder votes",String.valueOf(tempHolder.getmVotes().size()));
+                    }
+                    CheckIfAllRated();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
 
     public void AddMarker(String name,LatLng latLng){
 
@@ -436,7 +518,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Marker mMarker;
             mMarker = mMap.addMarker(options);
             mMarker.setTag("place");
-            MarkerHolder mHolder = new MarkerHolder(name, cuGroup, latLng.latitude, latLng.longitude, imageUri.toString());
+            MarkerHolder mHolder = new MarkerHolder(name, cuGroup, latLng.latitude, latLng.longitude, imageUri.toString(),cuRating);
 
             Iterator<HashMap.Entry<Marker, MarkerHolder>> iterator = markerHolderMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -495,7 +577,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    mRating.setRating(Float.parseFloat(cuRating));
+                    mRating.setRating(Float.parseFloat(myHolder.getmVote()));
                     return mView;
                 }
 
@@ -627,9 +709,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mMarker.setTag("user");
                     userHolderMap.put(mMarker,user);
 //                    mMarker.showInfoWindow();
-                    Log.d("getUsers name: " + user.getName(),"Marker: " + mMarker);
+//                    Log.d("getUsers name: " + user.getName(),"Marker: " + mMarker);
                 }
-                Log.d("getUser Children Count ", String.valueOf(dataSnapshot.getChildrenCount()));
+//                Log.d("getUser Children Count ", String.valueOf(dataSnapshot.getChildrenCount()));
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {

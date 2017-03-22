@@ -6,6 +6,7 @@ import com.google.android.gms.maps.model.LatLng;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by doura on 3/1/2017.
@@ -22,19 +23,20 @@ public class MarkerHolder {
     private String mUri;
     private String mImgUrl;
     private String mVote;
-
+    private Map<String,String> mVotes;
 
     //Constructeur blanc pour firebase
     public MarkerHolder(){
     }
 
     //Constructeur
-    public MarkerHolder(String n, String g, double lt,double lg, String u){
+    public MarkerHolder(String n, String g, double lt,double lg, String u, String v){
         this.mName = n;
         this.mGroup = g;
         this.mLat = lt;
         this.mLong = lg;
         this.mUri = u;
+        this.mVote =v;
         this.mImgUrl = null;
     }
 
@@ -73,6 +75,14 @@ public class MarkerHolder {
 
     public String getmId() {
         return mId;
+    }
+
+    public Map<String, String> getmVotes() {
+        return mVotes;
+    }
+
+    public void setmVotes(Map<String, String> mVotes) {
+        this.mVotes = mVotes;
     }
 
     public void setmId(String mId) {

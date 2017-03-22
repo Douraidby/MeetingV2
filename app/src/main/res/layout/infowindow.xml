@@ -20,7 +20,7 @@
         android:layout_width="150dp"
         android:layout_height="100dp"
         android:layout_gravity="center"
-        app:srcCompat="@drawable/button_shape"
+        app:srcCompat="@drawable/shape_notification"
         android:layout_weight="0.00" />
 
     <TextView
