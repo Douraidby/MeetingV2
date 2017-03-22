@@ -84,6 +84,13 @@ public class MarkerHolder {
     public void setmVotes(Map<String, String> mVotes) {
         this.mVotes = mVotes;
     }
+    public float getVotesMoy(){
+        float Sum=0;
+        for (Map.Entry<String,String> vote: mVotes.entrySet())
+            Sum += Float.parseFloat(vote.getValue());
+        float moy = Sum/(mVotes.size());
+        return moy;
+    }
 
     public void setmId(String mId) {
         this.mId = mId;

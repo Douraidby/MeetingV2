@@ -478,9 +478,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void ShowVotes() {
         View vView = getLayoutInflater().inflate(R.layout.votes_layout,null);
         TextView vName1  = (TextView) vView.findViewById(R.id.lieu1);
-        TextView vMoy1 = (TextView)vView.findViewById(R.id.moy1);
+        RatingBar vMoy1 = (RatingBar)vView.findViewById(R.id.RatingBar1);
         Button vbtn1 = (Button)vView.findViewById(R.id.btn1);
-
+        vName1.setText(TempHolderList.get(0).getmName());
+        vMoy1.setRating(TempHolderList.get(0).getVotesMoy());
+        Log.d("vMoy1 ", String.valueOf(TempHolderList.get(0).getVotesMoy()));
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
         mBuilder.setView(vView);
