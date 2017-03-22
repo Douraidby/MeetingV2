@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/send_Positions"
+        android:icon="@mipmap/ic_add_location_black_24dp"
+        android:title="@string/envoyer_lieu_de_rencontre"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/open_calender"
+        android:icon="@mipmap/ic_perm_contact_calendar_black_24dp"
+        android:title="@string/ouvrir_calendrier"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_messages"
+        android:actionLayout="@layout/badge_layout"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/quit_group"
+        android:icon="@mipmap/ic_delete_forever_black_24dp"
+        android:title="@string/quitter_le_groupe"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/quit_app"
+        android:icon="@mipmap/ic_exit_to_app_black_24dp"
+        android:title="@string/sortir"
+        app:showAsAction="never" />
+
+
+</menu>
