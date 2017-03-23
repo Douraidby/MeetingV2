@@ -37,14 +37,13 @@
             android:layout_marginTop="10dp"
             android:isIndicator="true"
             android:numStars="5"
-            android:stepSize="0.2" />
-
-
+            android:stepSize="0.2"
+            android:paddingTop="5dp"/>
 
         <Button android:id="@+id/btn1"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:textSize="8dp"
+            android:textSize="12sp"
             android:text="@string/cr_er_l_venement" />
     </LinearLayout>
 
@@ -52,21 +51,31 @@
     android:id="@+id/ll2"
     android:layout_height="wrap_content"
     android:padding="@dimen/activity_horizontal_margin">
+
     <TextView android:layout_weight="1"
         android:id="@+id/lieu2"
         android:layout_height="wrap_content"
         android:layout_width="fill_parent"
         android:textStyle="bold"/>
 
-        <TextView
-            android:id="@+id/moy2"
-            android:layout_width="70dp"
-            android:layout_height="wrap_content" />
+        <RatingBar
+            android:id="@+id/RatingBar2"
+            style="?android:attr/ratingBarStyleSmall"
+            android:layout_width="124dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:isIndicator="true"
+            android:numStars="5"
+            android:stepSize="0.2"
+            android:paddingTop="5dp"/>
 
         <Button android:id="@+id/btn2"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="@string/cr_er_l_venement" />
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:textSize="12sp"
+            android:text="@string/cr_er_l_venement" />
 </LinearLayout>
 
     <LinearLayout
@@ -82,15 +91,23 @@
             android:layout_weight="1"
             android:textStyle="bold"/>
 
-        <TextView
-            android:id="@+id/moy3"
-            android:layout_width="70dp"
-            android:layout_height="wrap_content" />
-
+        <RatingBar
+            android:id="@+id/RatingBar3"
+            style="?android:attr/ratingBarStyleSmall"
+            android:layout_width="124dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:isIndicator="true"
+            android:numStars="5"
+            android:stepSize="0.2"
+            android:paddingTop="5dp"/>
         <Button
             android:id="@+id/btn3"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:textSize="12sp"
             android:text="@string/cr_er_l_venement" />
     </LinearLayout>
 

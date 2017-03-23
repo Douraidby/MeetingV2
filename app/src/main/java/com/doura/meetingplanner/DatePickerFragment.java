@@ -30,6 +30,10 @@ public class DatePickerFragment extends DialogFragment
 
         return new DatePickerDialog(getActivity(), this, year, month, day);
     }
+    public void DatePickerFragment(TextView text){
+
+
+    }
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService( Context.LAYOUT_INFLATER_SERVICE );
@@ -37,7 +41,8 @@ public class DatePickerFragment extends DialogFragment
         TextView txt_ddebut = (TextView) eView.findViewById(R.id.ddebut);
 
         String stringOfDate = day + "/" + month + "/" + year;
-        txt_ddebut.setText(txt_ddebut.getText() + "\n\nFormatted date: " + stringOfDate);
+  //      txt_ddebut.setText(txt_ddebut.getText() + "\n\nFormatted date: " + stringOfDate);
+        txt_ddebut.setText(stringOfDate);
         Log.d("date debut", (String) txt_ddebut.getText());
 
     }

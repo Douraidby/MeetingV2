@@ -519,8 +519,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void EditEventDialog() {
+
         View eView = getLayoutInflater().inflate(R.layout.event_layout,null);
-        TextView txt_ddebut = (TextView) eView.findViewById(R.id.ddebut);
         Button btn_ddebut = (Button) eView.findViewById(R.id.btn_ddebut);
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
@@ -531,8 +531,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_ddebut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DialogFragment picker = new DatePickerFragment();
-                picker.show(getFragmentManager(), "datePicker");
+                View eView = getLayoutInflater().inflate(R.layout.event_layout,null);
+                EditText txt_date = (EditText) eView.findViewById(R.id.datetext);
+/*                DialogFragment picker = new DatePickerFragment(txt_ddebut);
+                picker.show(getFragmentManager(), "datePicker");*/
+
+                setDate fromDate = new setDate(txt_date, MapsActivity.this);
             }
 
         });

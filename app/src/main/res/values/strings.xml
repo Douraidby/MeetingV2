@@ -13,5 +13,5 @@
     <string name="vote_moyen_par_lieu">Vote moyen par lieu</string>
     <string name="cr_er_l_venement">Créer l\'évenement</string>
     <string name="note_moyenne_par_lieu">Note moyenne par lieu</string>
-    <string name="vote_complet_veuillez_cr_er_un_venement">Vote complet! veuillez créer un évenement:</string>
+    <string name="vote_complet_veuillez_cr_er_un_venement">Vote completé! veuillez créer un évenement:</string>
 </resources>
