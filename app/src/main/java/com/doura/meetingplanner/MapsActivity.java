@@ -1,5 +1,7 @@
 package com.doura.meetingplanner;
 
+import android.app.DatePickerDialog;
+import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,6 +26,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -58,7 +61,9 @@ import com.squareup.picasso.Picasso;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -77,12 +82,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleApiClient mGoogleApiClient;
     private Location mLocation;
     private LocationRequest mLocationRequest;
-
     private StorageReference mStorage;
     private DatabaseReference mDatabase;
     private FirebaseDatabase mFirebaseInstance;
     private ProgressDialog mProgressdialog;
-
     private HashMap<Marker,MarkerHolder> placeHolderMap;
     private HashMap<Marker,MarkerHolder> markerHolderMap;
     private HashMap<Marker,User> userHolderMap;
@@ -98,6 +101,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public List<String> Votes;
     public Button notifCount;
     public int mNotifCount = 0;
+    DateFormat formatDateTime = DateFormat.getDateTimeInstance();
+    Calendar dateTime = Calendar.getInstance();
+    private Button btn_date;
+    private Button btn_time;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -483,10 +490,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         TextView vName1  = (TextView) vView.findViewById(R.id.lieu1);
         RatingBar vMoy1 = (RatingBar)vView.findViewById(R.id.RatingBar1);
         Button vbtn1 = (Button)vView.findViewById(R.id.btn1);
+        TextView vName2  = (TextView) vView.findViewById(R.id.lieu2);
+        RatingBar vMoy2 = (RatingBar)vView.findViewById(R.id.RatingBar2);
+        Button vbtn2 = (Button)vView.findViewById(R.id.btn2);
+        TextView vName3  = (TextView) vView.findViewById(R.id.lieu3);
+        RatingBar vMoy3 = (RatingBar)vView.findViewById(R.id.RatingBar3);
+        Button vbtn3 = (Button)vView.findViewById(R.id.btn3);
 
         vName1.setText(TempHolderList.get(0).getmName());
         vMoy1.setRating(TempHolderList.get(0).getVotesMoy());
-        Log.d("vMoy1 ", String.valueOf(TempHolderList.get(0).getVotesMoy()));
+        vName1.setText(TempHolderList.get(1).getmName());
+        vMoy1.setRating(TempHolderList.get(1).getVotesMoy());
+        vName1.setText(TempHolderList.get(2).getmName());
+        vMoy1.setRating(TempHolderList.get(2).getVotesMoy());
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
         mBuilder.setView(vView);
@@ -497,9 +513,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
+                EditEventDialog();
             }
         });
     }
+
+    private void EditEventDialog() {
+        View eView = getLayoutInflater().inflate(R.layout.event_layout,null);
+        TextView txt_ddebut = (TextView) eView.findViewById(R.id.ddebut);
+        Button btn_ddebut = (Button) eView.findViewById(R.id.btn_ddebut);
+
+        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
+        mBuilder.setView(eView);
+        final AlertDialog dialog = mBuilder.create();
+        dialog.show();
+
+        btn_ddebut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment picker = new DatePickerFragment();
+                picker.show(getFragmentManager(), "datePicker");
+            }
+
+        });
+
+    }
+
 
     public void CountAllVotes(){
         DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
