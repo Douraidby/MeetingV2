@@ -70,7 +70,7 @@ import java.util.List;
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener,DatePickerFragment.FragmentCallbacks,TimePickerFragment.FragmentCallbacks{
 
     //Define a request code to send to Google Play services This code is returned in Activity.onActivityResult
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
@@ -84,7 +84,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationRequest mLocationRequest;
     private StorageReference mStorage;
     private DatabaseReference mDatabase;
-    private FirebaseDatabase mFirebaseInstance;
     private ProgressDialog mProgressdialog;
     private HashMap<Marker,MarkerHolder> placeHolderMap;
     private HashMap<Marker,MarkerHolder> markerHolderMap;
@@ -97,14 +96,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public String cuImage;
     public Boolean cuOrganizer;
     public String cuRating;
-    public long usersNB;
     public List<String> Votes;
-    public Button notifCount;
-    public int mNotifCount = 0;
-    DateFormat formatDateTime = DateFormat.getDateTimeInstance();
-    Calendar dateTime = Calendar.getInstance();
-    private Button btn_date;
-    private Button btn_time;
+    private TextView datedebut;
+    private TextView timedebut;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,31 +134,69 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
-
-/*        View count = menu.findItem(R.id.badge).getActionView();
-        notifCount = (Button) count.findViewById(R.id.notif_count);
-        notifCount.setText(String.valueOf(mNotifCount));*/
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
+            case R.id.open_blogholder:
+                Intent intent = new Intent(this,BlogListActivity.class);
+                Bundle extras = new Bundle();
+                extras.putString("group",cuGroup);
+                extras.putString("user",cuName);
+                intent.putExtras(extras);
+                startActivity(intent);
+                return true;
             case R.id.send_Positions:
                 UploadMeetingPlaces();
                 return true;
+
             case R.id.menu_messages:
                 if (cuOrganizer)
                     ShowVotes();
                 else
                     Toast.makeText(this, "Accés restreint a l'organisateur!", Toast.LENGTH_SHORT).show();
                 return true;
+            case R.id.get_event:
+                    getEvent();
+                return true;
+
             case R.id.quit_app:
                 quitApplication();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void getEvent() {
+        DatabaseReference dbref = mDatabase.child(cuGroup).child("Events");
+        dbref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Event myevent = dataSnapshot.getValue(Event.class);
+                View edView = getLayoutInflater().inflate(R.layout.getevent_layout,null);
+                TextView eName  = (TextView) edView.findViewById(R.id.eventname);
+                TextView einfo  = (TextView) edView.findViewById(R.id.eventinfo);
+                TextView eddebut  = (TextView) edView.findViewById(R.id.eventddebut);
+                TextView ehdebut  = (TextView) edView.findViewById(R.id.eventhdebut);
+
+                eName.setText(myevent.geteName());
+                einfo.setText(myevent.geteDescription());
+                eddebut.setText(myevent.geteStartDate());
+                ehdebut.setText(myevent.geteStartTime());
+
+                AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
+                mBuilder.setView(edView);
+                AlertDialog dialog = mBuilder.create();
+                dialog.show();    }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     private void quitApplication() {
@@ -520,29 +553,79 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void EditEventDialog() {
 
-        View eView = getLayoutInflater().inflate(R.layout.event_layout,null);
-        Button btn_ddebut = (Button) eView.findViewById(R.id.btn_ddebut);
+        final View edView = getLayoutInflater().inflate(R.layout.event_layout,null);
+        Button btn_ddebut = (Button) edView.findViewById(R.id.btn_ddebut);
+        Button btn_hdebut = (Button) edView.findViewById(R.id.btn_hdebut);
+        Button btn_dfin = (Button) edView.findViewById(R.id.btn_dfin);
+        Button btn_hfin = (Button) edView.findViewById(R.id.btn_hfin);
+        Button btn_envoyer = (Button) edView.findViewById(R.id.btn_envoyer);
+
+        datedebut = (TextView) edView.findViewById(R.id.ddebut);
+        timedebut = (TextView) edView.findViewById(R.id.hdebut);
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
-        mBuilder.setView(eView);
+        mBuilder.setView(edView);
         final AlertDialog dialog = mBuilder.create();
         dialog.show();
 
         btn_ddebut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                View eView = getLayoutInflater().inflate(R.layout.event_layout,null);
-                EditText txt_date = (EditText) eView.findViewById(R.id.datetext);
-/*                DialogFragment picker = new DatePickerFragment(txt_ddebut);
-                picker.show(getFragmentManager(), "datePicker");*/
-
-                setDate fromDate = new setDate(txt_date, MapsActivity.this);
+                DialogFragment picker = new DatePickerFragment();
+                picker.show(getFragmentManager(), "datePicker");
             }
 
         });
 
+        btn_hdebut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment picker = new TimePickerFragment();
+                picker.show(getFragmentManager(), "timePicker");
+            }
+
+        });
+
+        btn_dfin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment picker = new DatePickerFragment();
+                picker.show(getFragmentManager(), "datePicker");
+            }
+
+        });
+
+        btn_hfin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DialogFragment picker = new TimePickerFragment();
+                picker.show(getFragmentManager(), "timePicker");
+            }
+
+        });
+        btn_envoyer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                UploadEvent(edView);
+                dialog.dismiss();
+            }
+
+        });
+        mBuilder.setView(edView);
+        dialog.show();
+
     }
 
+    private void UploadEvent(View eView) {
+
+        EditText txt_name = (EditText) eView.findViewById(R.id.ename);
+        EditText txt_info = (EditText) eView.findViewById(R.id.einfo);
+
+        Event anEvent = new Event(txt_name.getText().toString(), txt_info.getText().toString(),datedebut.getText().toString(),timedebut.getText().toString(),"","");
+        DatabaseReference dbref = mDatabase.child(cuGroup).child("Events");
+        dbref.setValue(anEvent);
+        Toast.makeText(this, "Event uploaded to Firebase!", Toast.LENGTH_SHORT).show();
+    }
 
     public void CountAllVotes(){
         DatabaseReference dbref = mDatabase.child(cuGroup).child("Meeting_Markers");
@@ -642,6 +725,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mName.setText(pHolder.getmName());
                     mLat.setText(String.valueOf(pHolder.getmLat()));
                     mLong.setText(String.valueOf(pHolder.getmLong()));
+
                     Picasso.with(MapsActivity.this)
                             .load(pHolder.getmImgUrl())
                             .into(mImage);
@@ -896,6 +980,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+    @Override
+    public void setTextDate(int year, int month, int day) {
+        datedebut.setText(day+"/"+(month+1)+"/"+year);
+    }
+
+    @Override
+    public void setTextTime(int hourOfDay, int minute) {
+        timedebut.setText(hourOfDay+":"+minute);
+    }
 
 }
 

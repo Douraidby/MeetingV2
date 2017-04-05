@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  * Created by doura on 3/1/2017.
- * Classe qui va contenir les infos d'un marqueur de place de meeting ou le profile d'un utilisateur
+ * Classe qui va contenir les infos d'un marqueur de place de meeting
  */
 
 public class MarkerHolder {

@@ -5,6 +5,7 @@ import java.sql.Blob;
 
 /**
  * Created by doura on 2/21/2017.
+ * Classe qui va contenir le profile d'un utilisateur
  */
 
 public class User {

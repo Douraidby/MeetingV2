@@ -17,6 +17,7 @@
             android:text="Nom" />
 
         <EditText
+            android:id="@+id/ename"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.50"
@@ -40,6 +41,7 @@
             android:text="Informations" />
 
         <EditText
+            android:id="@+id/einfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.50"
@@ -64,34 +66,27 @@
         android:text="Date début" />
         <TextView
             android:id="@+id/ddebut"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:paddingLeft="10px"
             android:paddingTop="20px"
-            android:text="text" />
-        <EditText
-            android:id="@+id/datetext"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.50"
-            android:layout_marginLeft="40px"
-            android:paddingTop="20px"
-            android:clickable="true"
-            android:focusable="false"/>
+            android:text="" />
 
     <Button
+        android:id="@+id/btn_hdebut"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:paddingLeft="20px"
         android:paddingTop="10px"
-        android:text="Heure" />
+        android:text="Heure début" />
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/hdebut"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:paddingLeft="10px"
             android:paddingTop="20px"
-            android:text="Description" />
+            android:text="" />
 
     </LinearLayout>
 
@@ -103,6 +98,7 @@
         android:paddingTop="20px"
         android:paddingBottom="20px">
         <Button
+            android:id="@+id/btn_dfin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -110,12 +106,14 @@
             android:paddingTop="10px"
             android:text="Date de fin" />
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/dfin"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:paddingLeft="10px"
             android:paddingTop="20px"
-            android:text="Description" />
+            android:text="" />
         <Button
+            android:id="@+id/btn_hfin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -123,20 +121,22 @@
             android:paddingTop="10px"
             android:text="Heure de Fin" />
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/hfin"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:paddingLeft="10px"
             android:paddingTop="20px"
-            android:text="Description" />
+            android:text="" />
     </LinearLayout>
 
     <Button
-        android:id="@+id/button4"
-        android:layout_width="wrap_content"
+        android:id="@+id/btn_envoyer"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:paddingLeft="20px"
-        android:paddingTop="10px"
-        android:text="Envoyer" />
+        android:paddingTop="20px"
+        android:text="Envoyer"
+        android:layout_marginTop="20dp"/>
 
 </LinearLayout>

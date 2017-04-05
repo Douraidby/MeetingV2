@@ -3,20 +3,26 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/open_blogholder"
+        android:icon="@mipmap/blog_icon"
+        android:title="@string/poster_blog"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/send_Positions"
         android:icon="@mipmap/ic_add_location_black_24dp"
         android:title="@string/envoyer_lieu_de_rencontre"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/open_calender"
+        android:id="@+id/get_event"
         android:icon="@mipmap/ic_perm_contact_calendar_black_24dp"
         android:title="@string/ouvrir_calendrier"
         app:showAsAction="always" />
 
     <item
+        android:title="@string/calendar"
         android:id="@+id/menu_messages"
-        android:actionLayout="@layout/badge_layout"
+        android:icon="@mipmap/ic_event_black_24dp"
         app:showAsAction="always" />
 
     <item

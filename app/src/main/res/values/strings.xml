@@ -14,4 +14,18 @@
     <string name="cr_er_l_venement">Créer l\'évenement</string>
     <string name="note_moyenne_par_lieu">Note moyenne par lieu</string>
     <string name="vote_complet_veuillez_cr_er_un_venement">Vote completé! veuillez créer un évenement:</string>
+    <string name="poster">Poster</string>
+    <string name="saisir_la_description">Saisir la description...</string>
+    <string name="saisir_le_titre">Saisir le titre...</string>
+    <string name="poster_blog">Poster blog</string>
+    <string name="title_activity_blog">Nouveau Blog</string>
+    <string name="title_activity_blog_list">BlogListActivity</string>
+    <string name="calendar">calendar</string>
+    <string name="Ajouter_nouveau_blog">Ajouter nouveau blog</string>
+    <string name="Liste_des_blogs" />
+    <string name="ajouter_un_blog" />
+    <string name="le_titre_du_blog_vient_ici">Le titre du blog vient ici</string>
+    <string name="la_descriptiono_vient_ici">La descriptiono vient ici</string>
+    <string name="le_nom_du_user_vient_ici">le nom du user vient ici</string>
+
 </resources>
