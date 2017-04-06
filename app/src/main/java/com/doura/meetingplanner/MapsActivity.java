@@ -1,6 +1,5 @@
 package com.doura.meetingplanner;
 
-import android.app.DatePickerDialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -9,6 +8,7 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
@@ -26,12 +26,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -46,6 +46,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
@@ -61,16 +63,20 @@ import com.squareup.picasso.Picasso;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
-import java.text.DateFormat;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import DirectionModules.DirectionFinder;
+import DirectionModules.DirectionFinderListener;
+import DirectionModules.Route;
+
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener,DatePickerFragment.FragmentCallbacks,TimePickerFragment.FragmentCallbacks{
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener,DatePickerFragment.FragmentCallbacks,
+        TimePickerFragment.FragmentCallbacks,DirectionFinderListener{
 
     //Define a request code to send to Google Play services This code is returned in Activity.onActivityResult
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
@@ -99,6 +105,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public List<String> Votes;
     private TextView datedebut;
     private TextView timedebut;
+    private List<LatLng> mList = new ArrayList<>();
+    private ProgressDialog progressDialog;
+    private Polyline mPolyline;
 
 
     @Override
@@ -292,6 +301,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 TempHolderList = new ArrayList<>();
                 Votes = new ArrayList<>();
 
+                Button btnTchemin = (Button) findViewById(R.id.btnFindPath);
+                btnTchemin.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        StartFindingDirection();
+                    }
+                });
+
                 mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                     @Override
                     public void onMapLongClick(LatLng latLng) {
@@ -306,11 +323,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     @Override
                     public boolean onMarkerClick(Marker marker) {
                         ShowInfoWindow(marker);
+                        LatLng mLL = new LatLng(marker.getPosition().latitude,marker.getPosition().longitude);
+                        if (mList.size()==2)
+                            mList.remove(0);
+                        mList.add(mLL);
                         return false;
                     }
                 });
-
-//                checkUsersNumber();
 
                 mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                     @Override
@@ -327,6 +346,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     CountAllVotes();
             }
         }
+    }
+
+    private void StartFindingDirection() {
+        if (mList.isEmpty()) {
+            Toast.makeText(this, "Veuillez choisir 2 markeurs en cliquant dessus.", Toast.LENGTH_SHORT).show();
+            return;}
+
+        if (mList.size() ==1) {
+            Toast.makeText(this, "Vueillez choisir une destination en cliquant sur le markeur correspondant.", Toast.LENGTH_SHORT).show();
+            return;}
+
+        try {
+            new DirectionFinder(this, mList.get(0), mList.get(1)).execute();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();}
     }
 
 
@@ -990,6 +1024,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         timedebut.setText(hourOfDay+":"+minute);
     }
 
+    @Override
+    public void onDirectionFinderStart() {
+        progressDialog = ProgressDialog.show(this, "Recherche du chemin ","en cours...", true);
+
+        if (mList != null)
+            mList.clear();
+
+        if (mPolyline != null)
+                mPolyline.remove();
+    }
+
+    @Override
+    public void onDirectionFinderSuccess(List<Route> route) {
+        progressDialog.dismiss();
+
+        ((TextView) findViewById(R.id.tvDuration)).setText(route.get(0).getrDuration().text);
+        ((TextView) findViewById(R.id.tvDistance)).setText(route.get(0).getrDistance().text);
+
+        PolylineOptions polylineOptions = new PolylineOptions().
+                geodesic(true).
+                color(Color.BLUE).
+                width(11);
+
+        for (int i = 0; i < route.get(0).getPoints().size(); i++)
+            polylineOptions.add(route.get(0).getPoints().get(i));
+
+        mPolyline = mMap.addPolyline(polylineOptions);
+
+    }
 }
 
 

@@ -27,5 +27,8 @@
     <string name="le_titre_du_blog_vient_ici">Le titre du blog vient ici</string>
     <string name="la_descriptiono_vient_ici">La descriptiono vient ici</string>
     <string name="le_nom_du_user_vient_ici">le nom du user vient ici</string>
+    <string name="trouver_chemin">Trouver chemin</string>
+    <string name="_0_km">0 km</string>
+    <string name="_0_min">0 min</string>
 
 </resources>
