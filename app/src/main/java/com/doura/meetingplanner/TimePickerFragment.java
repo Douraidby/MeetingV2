@@ -1,13 +1,11 @@
 package com.doura.meetingplanner;
 
-import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.format.DateFormat;
-import android.widget.DatePicker;
 import android.widget.TimePicker;
 
 import java.util.Calendar;
@@ -28,17 +26,19 @@ public class TimePickerFragment extends DialogFragment
     }
 
     /**
-     * Interface to communicate to the parent activity (MainActivity.java)
+     * Interface to communicate to the parent activity (MapsActivity.java)
      */
     private FragmentCallbacks mCallbacks;
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        mCallbacks.setTextTime(hourOfDay, minute);
+        Bundle extras = getArguments();
+        String mTime = extras.getString("time");
+        mCallbacks.setTextTime(hourOfDay, minute, mTime);
     }
 
     public interface FragmentCallbacks {
-        void setTextTime(int hourOfDay, int minute);
+        void setTextTime(int hourOfDay, int minute, String mtime);
     }
 
     @Override

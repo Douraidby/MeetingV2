@@ -3,6 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/start_chat"
+        android:icon="@mipmap/chatroom"
+        android:title="@string/chat"
+        app:showAsAction="always"/>
+
+    <item
         android:id="@+id/open_blogholder"
         android:icon="@mipmap/blog_icon"
         android:title="@string/poster_blog"
@@ -14,14 +20,14 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/get_event"
-        android:icon="@mipmap/ic_perm_contact_calendar_black_24dp"
-        android:title="@string/ouvrir_calendrier"
+        android:id="@+id/get_votes"
+        android:actionLayout="@layout/badge_layout"
+        android:title="@string/verifier_les_votes"
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/get_event"
         android:title="@string/calendar"
-        android:id="@+id/menu_messages"
         android:icon="@mipmap/ic_event_black_24dp"
         app:showAsAction="always" />
 

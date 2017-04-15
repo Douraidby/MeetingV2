@@ -58,7 +58,8 @@
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".BlogListActivity"
-            android:label="@string/Liste_des_blogs"> </activity>
+            android:label="@string/Liste_des_blogs"></activity>
+        <activity android:name=".ChatRoom"></activity>
     </application>
 
 </manifest>

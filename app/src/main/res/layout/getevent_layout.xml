@@ -7,9 +7,9 @@
         android:id="@+id/vdvd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="40px"
-        android:paddingTop="20px"
-        android:text="Evenement a venir"
+        android:layout_marginStart="40dp"
+        android:paddingTop="15dp"
+        android:text="@string/v_nement_venir"
         android:layout_gravity="center"
         android:textStyle="bold"
         android:textSize="16sp"/>
@@ -18,122 +18,176 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="20px">
+        android:paddingTop="15dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:paddingLeft="10px"
-            android:paddingTop="20px"
+            android:layout_weight="0.25"
+            android:paddingStart="10dp"
+            android:paddingTop="15dp"
             android:text="Nom"
             android:textColor="#ff0000"/>
 
         <TextView
             android:id="@+id/eventname"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.50"
-            android:layout_marginLeft="40px"
-            android:paddingTop="20px" />
+            android:layout_weight="0.75"
+            android:layout_marginStart="40dp"
+            android:paddingTop="15dp" />
     </LinearLayout>
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="20px">
+        android:paddingTop="15dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:paddingLeft="10px"
-            android:paddingTop="20px"
+            android:layout_weight="0.25"
+            android:paddingStart="10dp"
+            android:paddingTop="15dp"
             android:text="Informations"
             android:textColor="#ff0000"/>
 
         <TextView
             android:id="@+id/eventinfo"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.50"
-            android:layout_marginLeft="40px"
-            android:paddingTop="20px" />
+            android:layout_weight="0.75"
+            android:layout_marginStart="40dp"
+            android:paddingTop="15dp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="20px">
+        android:paddingTop="15dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:paddingLeft="10px"
-            android:paddingTop="20px"
+            android:layout_weight="0.25"
+            android:paddingStart="10dp"
+            android:paddingTop="15dp"
             android:text="Date de début"
             android:textColor="#ff0000"/>
 
         <TextView
             android:id="@+id/eventddebut"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.50"
-            android:layout_marginLeft="40px"
-            android:paddingTop="20px" />
+            android:layout_weight="0.75"
+            android:layout_marginStart="40dp"
+            android:paddingTop="15dp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="20px">
+        android:paddingTop="15dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:paddingLeft="10px"
-            android:paddingTop="20px"
+            android:layout_weight="0.25"
+            android:paddingStart="10dp"
+            android:paddingTop="15dp"
             android:text="Heure de début"
             android:textColor="#ff0000"/>
 
         <TextView
             android:id="@+id/eventhdebut"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.50"
-            android:layout_marginLeft="40px"
-            android:paddingTop="20px" />
+            android:layout_weight="0.75"
+            android:layout_marginStart="40dp"
+            android:paddingTop="15dp" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="15dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:paddingStart="10dp"
+            android:paddingTop="15dp"
+            android:text="@string/date_de_fin"
+            android:textColor="#ff0000"/>
+
+        <TextView
+            android:id="@+id/eventdfin"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.75"
+            android:layout_marginStart="40dp"
+            android:paddingTop="15dp" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="15dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:paddingStart="10dp"
+            android:paddingTop="15dp"
+            android:text="@string/heure_de_fin"
+            android:textColor="#ff0000"/>
+
+        <TextView
+            android:id="@+id/eventhfin"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.75"
+            android:layout_marginStart="40dp"
+            android:paddingTop="15dp" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="20px">
-    <Button
-        android:id="@+id/btn_participe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:paddingLeft="20px"
-        android:paddingTop="10px"
-        android:text="participe" />
+        android:paddingTop="15dp">
+
         <Button
-            android:id="@+id/btn_participepas"
-            android:layout_width="wrap_content"
+            android:id="@+id/btn_participe"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:paddingLeft="20px"
-            android:paddingTop="10px"
-            android:text="ne participe pas" />
+            android:paddingStart="15dp"
+            android:paddingTop="10dp"
+            android:text="@string/participe"
+            android:layout_weight="0.33"/>
+
         <Button
             android:id="@+id/btn_peutetre"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:paddingLeft="20px"
-            android:paddingTop="10px"
-            android:text="peut etre" />
+            android:paddingStart="15dp"
+            android:paddingTop="10dp"
+            android:text="@string/peut_etre"
+            android:layout_weight="0.33"/>
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btn_participepas"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingStart="15dp"
+            android:paddingTop="10dp"
+            android:text="@string/ne_participe_pas"
+            android:layout_weight="0.33"/>
+
+
+    </LinearLayout>
 </LinearLayout>

@@ -1,17 +1,11 @@
 package com.doura.meetingplanner;
 
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.DatePicker;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Calendar;
 
@@ -33,16 +27,18 @@ public class DatePickerFragment extends DialogFragment
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int day) {
-        mCallbacks.setTextDate(year, month, day);
+        Bundle extras = getArguments();
+        String mDate = extras.getString("date");
+        mCallbacks.setTextDate(year, month, day, mDate);
     }
 
     /**
-     * Interface to communicate to the parent activity (MainActivity.java)
+     * Interface to communicate to the parent activity (MapsActivity.java)
      */
     private FragmentCallbacks mCallbacks;
 
     public interface FragmentCallbacks {
-        void setTextDate(int year, int month, int day);
+        void setTextDate(int year, int month, int day, String mdate);
     }
 
     @Override

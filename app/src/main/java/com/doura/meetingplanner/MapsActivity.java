@@ -18,6 +18,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
@@ -29,6 +30,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,7 +78,7 @@ import DirectionModules.Route;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener,DatePickerFragment.FragmentCallbacks,
-        TimePickerFragment.FragmentCallbacks,DirectionFinderListener{
+        TimePickerFragment.FragmentCallbacks,DirectionFinderListener, View.OnClickListener{
 
     //Define a request code to send to Google Play services This code is returned in Activity.onActivityResult
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
@@ -104,10 +106,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public String cuRating;
     public List<String> Votes;
     private TextView datedebut;
+    private TextView datefin;
     private TextView timedebut;
+    private TextView timefin;
     private List<LatLng> mList = new ArrayList<>();
     private ProgressDialog progressDialog;
     private Polyline mPolyline;
+    private MenuItem menuItem;
 
 
     @Override
@@ -143,12 +148,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu,menu);
+        menuItem = menu.findItem(R.id.get_votes);
+        writeBadge(0);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    private void writeBadge(int count) {
+        MenuItemCompat.setActionView(menuItem, R.layout.badge_layout);
+        RelativeLayout layout = (RelativeLayout) MenuItemCompat.getActionView(menuItem);
+        // A TextView with number.
+        TextView tv = (TextView) layout.findViewById(R.id.badge_textView);
+        if (count == 0) {
+            tv.setVisibility(View.INVISIBLE);
+        } else {
+            tv.setVisibility(View.VISIBLE);
+            tv.setText(String.valueOf(count));
+        }
+        // An icon, it also must be clicked.
+        ImageView imageView = (ImageView) layout.findViewById(R.id.badge_icon_button);
+        View.OnClickListener onClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onOptionsItemSelected(menuItem);
+            }
+        };
+        menuItem.getActionView().setOnClickListener(onClickListener);
+        imageView.setOnClickListener(onClickListener);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         switch(item.getItemId()){
+
             case R.id.open_blogholder:
                 Intent intent = new Intent(this,BlogListActivity.class);
                 Bundle extras = new Bundle();
@@ -157,16 +189,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 intent.putExtras(extras);
                 startActivity(intent);
                 return true;
+
+            case R.id.start_chat:
+                Intent mIntent = new Intent(this, ChatRoom.class);
+                mIntent.putExtra("group",cuGroup);
+                mIntent.putExtra("user", cuName);
+                startActivity(mIntent);
+                return true;
             case R.id.send_Positions:
-                UploadMeetingPlaces();
+                if(cuOrganizer)
+                    UploadMeetingPlaces();
+                else
+                    Toast.makeText(this, "Seul l'oraganisateur a le droit de proposer des lieux de rencontre.", Toast.LENGTH_SHORT).show();
                 return true;
 
-            case R.id.menu_messages:
-                if (cuOrganizer)
+            case R.id.get_votes:
+                if (cuOrganizer){
                     ShowVotes();
+                    writeBadge(0);}
                 else
                     Toast.makeText(this, "Accés restreint a l'organisateur!", Toast.LENGTH_SHORT).show();
                 return true;
+
             case R.id.get_event:
                     getEvent();
                 return true;
@@ -190,11 +234,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 TextView einfo  = (TextView) edView.findViewById(R.id.eventinfo);
                 TextView eddebut  = (TextView) edView.findViewById(R.id.eventddebut);
                 TextView ehdebut  = (TextView) edView.findViewById(R.id.eventhdebut);
+                TextView edfin = (TextView) edView.findViewById(R.id.eventdfin);
+                TextView ehfin = (TextView) edView.findViewById(R.id.eventhfin);
 
                 eName.setText(myevent.geteName());
                 einfo.setText(myevent.geteDescription());
                 eddebut.setText(myevent.geteStartDate());
                 ehdebut.setText(myevent.geteStartTime());
+                edfin.setText(myevent.geteEndDate());
+                ehfin.setText(myevent.geteEndTime());
 
                 AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
                 mBuilder.setView(edView);
@@ -541,7 +589,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 long Nbusers = dataSnapshot.getChildrenCount();
                 if (TempHolderList.get(0).getmVotes().size()== Nbusers && TempHolderList.get(1).getmVotes().size()== Nbusers && TempHolderList.get(2).getmVotes().size()== Nbusers)
-                    ShowVotes();
+                    writeBadge(1);
+//                    ShowVotes();
             }
 
             @Override
@@ -596,47 +645,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         datedebut = (TextView) edView.findViewById(R.id.ddebut);
         timedebut = (TextView) edView.findViewById(R.id.hdebut);
+        datefin = (TextView) edView.findViewById(R.id.dfin);
+        timefin = (TextView) edView.findViewById(R.id.hfin);
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MapsActivity.this);
         mBuilder.setView(edView);
         final AlertDialog dialog = mBuilder.create();
         dialog.show();
 
-        btn_ddebut.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DialogFragment picker = new DatePickerFragment();
-                picker.show(getFragmentManager(), "datePicker");
-            }
+        btn_ddebut.setOnClickListener(this);
+        btn_dfin.setOnClickListener(this);
+        btn_hdebut.setOnClickListener(this);
+        btn_hfin.setOnClickListener(this);
 
-        });
-
-        btn_hdebut.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DialogFragment picker = new TimePickerFragment();
-                picker.show(getFragmentManager(), "timePicker");
-            }
-
-        });
-
-        btn_dfin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DialogFragment picker = new DatePickerFragment();
-                picker.show(getFragmentManager(), "datePicker");
-            }
-
-        });
-
-        btn_hfin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DialogFragment picker = new TimePickerFragment();
-                picker.show(getFragmentManager(), "timePicker");
-            }
-
-        });
         btn_envoyer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -647,16 +668,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
         mBuilder.setView(edView);
         dialog.show();
-
     }
 
     private void UploadEvent(View eView) {
 
+        DatabaseReference dbref = mDatabase.child(cuGroup).child("Events");
         EditText txt_name = (EditText) eView.findViewById(R.id.ename);
         EditText txt_info = (EditText) eView.findViewById(R.id.einfo);
 
-        Event anEvent = new Event(txt_name.getText().toString(), txt_info.getText().toString(),datedebut.getText().toString(),timedebut.getText().toString(),"","");
-        DatabaseReference dbref = mDatabase.child(cuGroup).child("Events");
+        Event anEvent = new Event(txt_name.getText().toString(), txt_info.getText().toString(),datedebut.getText().toString(),timedebut.getText().toString(),
+                datefin.getText().toString(),timefin.getText().toString());
         dbref.setValue(anEvent);
         Toast.makeText(this, "Event uploaded to Firebase!", Toast.LENGTH_SHORT).show();
     }
@@ -729,8 +750,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 if (marker.getTag()=="user") {
                     User myHolder = userHolderMap.get(marker);
+                    AdressFromLatlng mAdress = new AdressFromLatlng(MapsActivity.this, myHolder.getuLat(), myHolder.getuLong());
                     mName.setText(myHolder.getName());
-                    mLat.setText("Lat:" + String.valueOf(myHolder.getuLat()));
+/*                    mLat.setText("Lat:" + String.valueOf(myHolder.getuLat()));
+                    mLong.setText("Long:" + String.valueOf(myHolder.getuLong()));*/
+//                    Log.d("Adress", mAdress.getAdress());
+                    String mAddress = mAdress.getAdress();
+                    if (mAddress==null)
+                        Log.d("madress", "nullll");
+                    mLat.setText(mAddress);
                     mLong.setText("Long:" + String.valueOf(myHolder.getuLong()));
                     mRating.setVisibility(View.INVISIBLE);
 
@@ -1015,13 +1043,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     @Override
-    public void setTextDate(int year, int month, int day) {
-        datedebut.setText(day+"/"+(month+1)+"/"+year);
+    public void setTextDate(int year, int month, int day, String mdate) {
+        if (mdate.equals("debut") )
+            datedebut.setText(day+"/"+(month+1)+"/"+year);
+        if (mdate.equals("fin") )
+            datefin.setText(day+"/"+(month+1)+"/"+year);
     }
 
     @Override
-    public void setTextTime(int hourOfDay, int minute) {
-        timedebut.setText(hourOfDay+":"+minute);
+    public void setTextTime(int hourOfDay, int minute, String mtime) {
+        if (mtime.equals("debut")) {
+            if (minute < 10)
+                timedebut.setText(hourOfDay + ":0" + minute);
+            else
+                timedebut.setText(hourOfDay + ":" + minute);
+        }
+        if (mtime.equals("fin")) {
+            if (minute<10)
+                timefin.setText(hourOfDay + ":0" + minute);
+            else
+                timefin.setText(hourOfDay + ":" + minute);
+        }
     }
 
     @Override
@@ -1038,7 +1080,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onDirectionFinderSuccess(List<Route> route) {
         progressDialog.dismiss();
-
         ((TextView) findViewById(R.id.tvDuration)).setText(route.get(0).getrDuration().text);
         ((TextView) findViewById(R.id.tvDistance)).setText(route.get(0).getrDistance().text);
 
@@ -1051,8 +1092,40 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             polylineOptions.add(route.get(0).getPoints().get(i));
 
         mPolyline = mMap.addPolyline(polylineOptions);
-
     }
+
+    @Override
+    public void onClick(View v) {
+
+        DialogFragment Datepicker = new DatePickerFragment();
+        DialogFragment Timepicker = new TimePickerFragment();
+        Bundle extras = new Bundle();
+
+        switch(v.getId()){
+            case R.id.btn_ddebut:
+                extras.putString("date","debut");
+                Datepicker.setArguments(extras);
+                Datepicker.show(getFragmentManager(), "datePicker");
+                break;
+            case R.id.btn_dfin:
+                extras.putString("date","fin");
+                Datepicker.setArguments(extras);
+                Datepicker.show(getFragmentManager(), "datePicker");
+                break;
+            case R.id.btn_hdebut:
+                extras.putString("time","debut");
+                Timepicker.setArguments(extras);
+                Timepicker.show(getFragmentManager(), "timePicker");
+                break;
+            case R.id.btn_hfin:
+                extras.putString("time","fin");
+                Timepicker.setArguments(extras);
+                Timepicker.show(getFragmentManager(),"timePicker");
+                break;
+        }
+    }
+
+
 }
 
 

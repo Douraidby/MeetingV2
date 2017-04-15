@@ -30,5 +30,14 @@
     <string name="trouver_chemin">Trouver chemin</string>
     <string name="_0_km">0 km</string>
     <string name="_0_min">0 min</string>
+    <string name="evenement_a_venir">Evenement a venir</string>
+    <string name="v_nement_venir">Événement à venir</string>
+    <string name="participe">participe</string>
+    <string name="ne_participe_pas">ne participe pas</string>
+    <string name="peut_etre">peut etre</string>
+    <string name="heure_de_fin">Heure de fin</string>
+    <string name="date_de_fin">Date de fin</string>
+    <string name="chat">chat</string>
+    <string name="verifier_les_votes">Verifier les votes</string>
 
 </resources>
