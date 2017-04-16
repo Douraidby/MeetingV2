@@ -6,8 +6,8 @@
         android:id="@+id/badge_icon_button"
         android:layout_width="38dp"
         android:layout_height="38dp"
-        android:textSize="24sp"
-        />
+        android:textSize="24sp"/>
+        <!-- android:src="@mipmap/ic_event_available_black_24dp" -->
 
 
     <TextView
