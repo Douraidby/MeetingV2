@@ -36,8 +36,10 @@ public class ChatRoom extends AppCompatActivity {
         send_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                EditText input = (EditText) findViewById(R.id.input);
                 ChatMessage mChatRoom = new ChatMessage(cuName,message_txt.getText().toString());
                 mref.push().setValue(mChatRoom);
+                input.setText(null);
             }
         });
 
