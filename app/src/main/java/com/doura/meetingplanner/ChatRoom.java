@@ -38,6 +38,7 @@ public class ChatRoom extends AppCompatActivity {
             public void onClick(View v) {
                 ChatMessage mChatRoom = new ChatMessage(cuName,message_txt.getText().toString());
                 mref.push().setValue(mChatRoom);
+                message_txt.setText(null);
             }
         });
 
