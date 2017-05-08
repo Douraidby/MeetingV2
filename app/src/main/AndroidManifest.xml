@@ -50,6 +50,7 @@
 
         <activity
             android:name=".MapsActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_maps" />
         <activity
             android:name=".PostActivity"
@@ -58,8 +59,9 @@
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".BlogListActivity"
-            android:label="@string/Liste_des_blogs"></activity>
-        <activity android:name=".ChatRoom"></activity>
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/Liste_des_blogs" />
+        <activity android:name=".ChatRoom" />
     </application>
 
 </manifest>

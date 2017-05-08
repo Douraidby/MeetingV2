@@ -13,7 +13,6 @@ public class ChatMessage {
     private long cTime;
 
     public ChatMessage(){
-
     }
 
     public ChatMessage(String cUser, String cMessage) {

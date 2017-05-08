@@ -10,8 +10,10 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_above="@+id/linearLayout1"
+        android:paddingLeft="10sp"
+        android:paddingRight="10sp"
         android:transcriptMode="alwaysScroll"
-        android:stackFromBottom="true"></ListView>
+        android:stackFromBottom="true"> </ListView>
 
     <LinearLayout
         android:id="@+id/linearLayout1"
@@ -34,7 +36,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:inputType="textPersonName"
-            android:text="Name" />
+            android:hint="Message" />
 
         <ImageView
             android:id="@+id/message_btn"

@@ -750,15 +750,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 if (marker.getTag()=="user") {
                     User myHolder = userHolderMap.get(marker);
-                    AdressFromLatlng mAdress = new AdressFromLatlng(MapsActivity.this, myHolder.getuLat(), myHolder.getuLong());
-                    mName.setText(myHolder.getName());
-/*                    mLat.setText("Lat:" + String.valueOf(myHolder.getuLat()));
-                    mLong.setText("Long:" + String.valueOf(myHolder.getuLong()));*/
-//                    Log.d("Adress", mAdress.getAdress());
+/*                    AdressFromLatlng mAdress = new AdressFromLatlng(MapsActivity.this, myHolder.getuLat(), myHolder.getuLong());
                     String mAddress = mAdress.getAdress();
                     if (mAddress==null)
                         Log.d("madress", "nullll");
                     mLat.setText(mAddress);
+                    mLong.setText("Long:" + String.valueOf(myHolder.getuLong()));   */
+                    mName.setText(myHolder.getName());
+                    mLat.setText("Lat:" + String.valueOf(myHolder.getuLat()));
                     mLong.setText("Long:" + String.valueOf(myHolder.getuLong()));
                     mRating.setVisibility(View.INVISIBLE);
 
@@ -876,7 +875,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void UpdateProfile(Location loc) {
-        Log.d("UpdateProfile "," .");
+
         DatabaseReference dbref = mDatabase.child(cuGroup).child("Users_Markers");
         String UserId = cuName+"@"+cuGroup;
         dbref.child(UserId).child("uLat").setValue(loc.getLatitude());

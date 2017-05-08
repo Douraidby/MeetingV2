@@ -39,5 +39,8 @@
     <string name="date_de_fin">Date de fin</string>
     <string name="chat">chat</string>
     <string name="verifier_les_votes">Verifier les votes</string>
+    <string name="le_titre_du_chat_room_vient_ici">le titre du chat room vient ici</string>
+    <string name="l_auteur_du_chat">l\'auteur du chat</string>
+    <string name="chat_title">Chat title</string>
 
 </resources>

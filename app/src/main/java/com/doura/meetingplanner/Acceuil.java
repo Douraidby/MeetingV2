@@ -131,7 +131,7 @@ public class Acceuil extends AppCompatActivity {
             String name = n_text.getText().toString();
             String group = g_text.getText().toString();
 
-            if (!isNameEmpty() && !isGroupEmpty()){
+            if (!isNameEmpty() && !isGroupEmpty() && !isImageEmpty()){
 //                currentUser = new User(name,group,img_Blob);
                 return true;
             }

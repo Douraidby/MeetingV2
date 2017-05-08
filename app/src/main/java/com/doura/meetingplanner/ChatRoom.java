@@ -1,5 +1,6 @@
 package com.doura.meetingplanner;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -23,13 +24,12 @@ public class ChatRoom extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chatroom_layout);
-        setTitle("Chat room");
-
+        setTitle("Chat-Room");
         Bundle extras = getIntent().getExtras();
         cuGroup = extras.getString("group");
         cuName = extras.getString("user");
-        mref = FirebaseDatabase.getInstance().getReference().child(cuGroup).child("ChatRoom");
 
+        mref = FirebaseDatabase.getInstance().getReference().child(cuGroup).child("ChatRoom");
         ImageView send_btn = (ImageView) findViewById(R.id.message_btn);
         message_txt = (EditText) findViewById(R.id.message_txt);
 
@@ -57,6 +57,12 @@ public class ChatRoom extends AppCompatActivity {
                 messagetext = (TextView) v.findViewById(R.id.message_text);
                 messagetime = (TextView) v.findViewById(R.id.message_time);
 
+                if (model.getcUser().equals("doura"))
+                    messageuser.setTextColor(Color.GREEN);
+                if (model.getcUser().equals("jean"))
+                    messageuser.setTextColor(Color.RED);
+                if (model.getcUser().equals("ambroise"))
+                    messageuser.setTextColor(Color.BLUE);
                 messageuser.setText(model.getcUser());
                 messagetext.setText(model.getcMessage());
                 messagetime.setText(android.text.format.DateFormat.format("dd-MM-yyyy (HH:mm:ss)",model.getcTime()));

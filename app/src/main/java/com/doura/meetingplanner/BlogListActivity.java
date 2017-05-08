@@ -63,7 +63,7 @@ public class BlogListActivity extends AppCompatActivity {
         super.onStart();
 
         FirebaseRecyclerAdapter<Blog,BlogViewHolder> fbRecyclerAdapter = new FirebaseRecyclerAdapter<Blog, BlogViewHolder>(
-                Blog.class, R.layout.blog_row,BlogViewHolder.class,mDatabase ) {
+                Blog.class, R.layout.blog_row, BlogViewHolder.class,mDatabase ) {
             @Override
             protected void populateViewHolder(BlogViewHolder viewHolder, Blog model, int position) {
 
